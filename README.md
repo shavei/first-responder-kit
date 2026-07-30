@@ -34,12 +34,13 @@ you uninstall it first. Set those secrets to sign with a real key and updates wo
   The patient type set as the default in Settings is accented.
 - **Metronome screen** — large BPM readout inside a circle that pulses on every beat,
   −/+ rate control, and one big Start/Stop button.
-- **Every beat** plays a short click, fires a haptic pulse and animates the circle. Sound
-  and vibration can each be turned off.
+- **Every beat** plays a short click, fires a burst of haptic hits and animates the circle.
+  Sound and vibration can each be turned off.
 - **Rate** — 110 BPM by default, adjustable from 100 to 120 BPM.
 - **Vibration strength** — a slider across the vibrator's full range, appearing under the
-  vibration toggle only while that toggle is on. Releasing it fires one pulse at the chosen
-  strength, so it can be set by feel. Full strength by default.
+  vibration toggle only while that toggle is on. Releasing it fires one beat at the chosen
+  strength, so it can be set by feel. Full strength by default, where the phone rattles hard
+  enough to hear.
 - **Settings** — sound, vibration, vibration strength, keep-screen-awake, default BPM,
   default patient type and theme (system / light / dark). Stored locally with DataStore.
 
@@ -135,17 +136,35 @@ twice does not spawn a second beat stream.
 
 ## How the vibration works
 
-The pulse is an explicit one-shot at a chosen amplitude, **not** `VibrationEffect.EFFECT_CLICK`.
-The predefined effects are the platform's UI haptics: fixed strength, tuned for a tick in the
-hand while you are looking at the screen, and far too faint to feel during compressions. A
-one-shot is the only API that exposes the motor's full range, so that is what the strength
-slider drives — 1 to 255, the platform's own amplitude scale, stored directly rather than as a
-percentage so the slider's ends really are the device's minimum and maximum.
+The beat is an explicit `VibrationEffect` waveform, **not** `VibrationEffect.EFFECT_CLICK`. The
+predefined effects are the platform's UI haptics: fixed strength, tuned for a tick in the hand
+while you are looking at the screen, and far too faint to feel during compressions. Only a
+hand-built waveform exposes the motor's full range, so that is what the strength slider drives
+— 1 to 255, the platform's own amplitude scale, stored directly rather than as a percentage so
+the slider's ends really are the device's minimum and maximum.
+
+Amplitude alone runs out of road at 255, and past that the way to make a beat hit harder is to
+hit *more often*. So a beat is not one flat pulse but a **burst**: up to four hits, each held
+long enough to reach full excursion, separated by 18 ms of silence. A vibration motor is a mass
+on a spring — held at a constant drive it settles into a steady hum the hand stops noticing
+within a few tens of milliseconds, whereas cutting the drive lets the mass swing back so the
+next hit lands as a fresh impact. Those repeated transients are what the skin reads as a *hit*
+and what the case actually radiates as sound, which is why a burst is heard across a room while
+a continuous buzz of the same amplitude is not. The strength slider drives all three knobs
+together: number of hits, length of each hit and amplitude. At maximum the burst runs 234 ms,
+still leaving 266 ms of silence before the next beat at the 120 BPM maximum, so beats never run
+into one another — `VibrationPatternTest` asserts that.
 
 Devices whose motor cannot vary its strength (`Vibrator.hasAmplitudeControl()` is false) ignore
-the amplitude argument entirely. There the slider maps to pulse *duration* instead, a longer
-buzz being the only remaining way to make a beat more noticeable, and the settings screen says
-so. The slider therefore does something on every device.
+the amplitude argument entirely. There the burst alone carries the setting — more hits, held
+longer, being the only remaining way to make a beat more noticeable — and the settings screen
+says so. The slider therefore does something on every device.
+
+The whole beat also declares **alarm** usage rather than sonification. The system scales haptics
+by the usage they declare, and a sonification pulse is treated as a UI tick: attenuated by the
+touch-feedback intensity setting and, on some devices, suppressed outright under Do Not Disturb.
+Alarm usage is scaled by the alarm intensity and is exempt from that suppression, so the same
+amplitude arrives at the motor considerably stronger.
 
 `VibrationEffect` instances are cached and rebuilt only when the strength changes, which keeps
 the promise that nothing on the timing thread allocates: within a session the strength is
