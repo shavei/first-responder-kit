@@ -100,6 +100,11 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="settings_language">Language</string>
+    <string name="language_system">System</string>
+    <!-- Each language names itself, so it is readable whichever one the app is currently in. -->
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_hebrew" translatable="false">עברית</string>
 
     <!-- Disclaimer -->
     <string name="disclaimer">Personal training aid. Not a medical device and not a substitute for clinical judgement or training.</string>

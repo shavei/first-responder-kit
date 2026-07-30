@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.firstresponder.kit.FirstResponderApp
 import com.firstresponder.kit.domain.PatientType
+import com.firstresponder.kit.settings.AppLanguage
 import com.firstresponder.kit.settings.SettingsRepository
 import com.firstresponder.kit.settings.ThemeMode
 import com.firstresponder.kit.settings.UserSettings
@@ -74,6 +75,8 @@ class SettingsViewModel(
     fun setKeepScreenOn(enabled: Boolean) = update { repository.setKeepScreenOn(enabled) }
 
     fun setThemeMode(themeMode: ThemeMode) = update { repository.setThemeMode(themeMode) }
+
+    fun setLanguage(language: AppLanguage) = update { repository.setLanguage(language) }
 
     fun setDefaultPatientType(patientType: PatientType) =
         update { repository.setDefaultPatientType(patientType) }

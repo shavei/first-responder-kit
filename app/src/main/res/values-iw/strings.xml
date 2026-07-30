@@ -1,0 +1,116 @@
+<resources>
+    <!--
+      Hebrew. The folder qualifier is `values-iw`, not `values-he`: Android reports Hebrew
+      locales under the historical ISO code, and resource lookup follows it — AndroidX
+      ships its own Hebrew strings under `iw` for the same reason.
+
+      The protocol wording follows the MDA BLS preparation sheet the numbers come from,
+      so what is on screen matches what the responder was taught.
+    -->
+    <string name="app_name">ערכת מגיש עזרה ראשונה</string>
+
+    <!-- Home -->
+    <string name="home_subtitle">מטרונום החייאה</string>
+    <string name="home_more_tools">כלים נוספים</string>
+    <string name="settings">הגדרות</string>
+
+    <!-- Patient types -->
+    <string name="patient_newborn">יילוד</string>
+    <string name="patient_infant">תינוק</string>
+    <string name="patient_child">ילד</string>
+    <string name="patient_adult">מבוגר</string>
+
+    <!-- Metronome -->
+    <string name="bpm_unit">פעימות בדקה</string>
+    <string name="start">התחל</string>
+    <string name="stop">עצור</string>
+    <string name="back">חזרה</string>
+    <string name="decrease_bpm">הקטנת הקצב</string>
+    <string name="increase_bpm">הגדלת הקצב</string>
+    <string name="compressions_per_minute">עיסויים בדקה</string>
+    <string name="events_per_minute">אירועים בדקה — 90 עיסויים + 30 הנשמות</string>
+    <string name="bpm_range">%1$d–%2$d %3$s</string>
+    <string name="bpm_fixed">%1$d %2$s</string>
+
+    <!-- Compression guidance, from the BLS comparison table -->
+    <string name="depth_5_to_6_cm">עומק 5–6 ס\"מ</string>
+    <string name="depth_third_of_chest_5cm">לפחות ⅓ מעומק בית החזה (כ־5 ס\"מ)</string>
+    <string name="depth_third_of_chest_4cm">לפחות ⅓ מעומק בית החזה (כ־4 ס\"מ)</string>
+    <string name="depth_third_of_chest">לפחות ⅓ מעומק בית החזה</string>
+    <string name="technique_two_hands">שתי ידיים</string>
+    <string name="technique_one_or_two_hands">יד אחת או שתיים</string>
+    <string name="technique_two_fingers_or_thumbs">מטפל יחיד: 2 אצבעות · זוג מטפלים: 2 אגודלים</string>
+    <string name="technique_two_thumbs">2 אגודלים מקיפים</string>
+    <string name="ratio_same">%1$s עיסויים להנשמות</string>
+    <string name="ratio_split">%1$s מטפל יחיד · %2$s זוג מטפלים</string>
+    <string name="depth_and_technique">%1$s · %2$s</string>
+
+    <!-- Oxygen, from the medical-oxygen section of the BLS sheet -->
+    <string name="oxygen">חמצן</string>
+    <string name="oxygen_delivery">ריכוז החמצן לפי אמצעי המתן</string>
+    <string name="oxygen_device_reservoir_mask">מסכה עם שקית מאגר</string>
+    <string name="oxygen_device_bvm_with_reservoir">מפוח להנשמה עם שקית מאגר</string>
+    <string name="oxygen_device_bvm_without_reservoir">מפוח להנשמה ללא שקית מאגר</string>
+    <string name="oxygen_flow_range">%1$d–%2$d ליטר לדקה</string>
+    <string name="oxygen_delivered_range">%1$d–%2$d%% חמצן</string>
+
+    <string name="oxygen_remaining">כמה חמצן נשאר במיכל</string>
+    <string name="oxygen_cylinder">מיכל</string>
+    <string name="oxygen_cylinder_h">H · 20 ליטר</string>
+    <string name="oxygen_cylinder_d">D · 2.4 ליטר</string>
+    <string name="oxygen_pressure">הלחץ במיכל</string>
+    <string name="oxygen_pressure_value">%1$d אטמוספרות</string>
+    <string name="oxygen_flow">קצב הזרימה</string>
+    <string name="oxygen_flow_value">%1$d ליטר לדקה</string>
+    <string name="oxygen_decrease_pressure">הקטנת הלחץ</string>
+    <string name="oxygen_increase_pressure">הגדלת הלחץ</string>
+    <string name="oxygen_decrease_flow">הקטנת קצב הזרימה</string>
+    <string name="oxygen_increase_flow">הגדלת קצב הזרימה</string>
+    <plurals name="oxygen_minutes">
+        <item quantity="one">%d דקה</item>
+        <item quantity="two">%d דקות</item>
+        <item quantity="other">%d דקות</item>
+    </plurals>
+    <plurals name="oxygen_hours">
+        <item quantity="one">%d שעה</item>
+        <item quantity="two">%d שעות</item>
+        <item quantity="other">%d שעות</item>
+    </plurals>
+    <string name="oxygen_hours_minutes">%1$s %2$s</string>
+    <string name="oxygen_formula">לחץ במיכל × נפח המיכל ÷ קצב זרימה</string>
+    <string name="oxygen_until_empty">זה הרגע שבו המיכל מתרוקן. יש להחליף אותו הרבה לפני כן.</string>
+
+    <string name="oxygen_safety">בטיחות בחמצן</string>
+    <string name="oxygen_safety_fire">להרחיק מאש גלויה, מניצוצות, משמן ומגריז.</string>
+    <string name="oxygen_safety_portable">להשכיב מיכל נייד ולא להעמיד אותו.</string>
+    <string name="oxygen_safety_defibrillator">להרחיק את החמצן מהמטופל לפני מתן שוק בדפיברילטור.</string>
+    <string name="oxygen_safety_test">בדיקה הידרוסטטית למיכל אחת ל־5 שנים.</string>
+
+    <!-- Settings -->
+    <string name="settings_feedback">משוב על הפעימה</string>
+    <string name="settings_sound">צליל</string>
+    <string name="settings_sound_summary">השמעת נקישה בכל פעימה</string>
+    <string name="settings_vibration">רטט</string>
+    <string name="settings_vibration_summary">הפעלת הרטט בכל פעימה</string>
+    <string name="settings_vibration_strength">עוצמת הרטט</string>
+    <string name="settings_vibration_strength_summary">שחררו את המחוון כדי להרגיש</string>
+    <string name="settings_vibration_strength_duration">המכשיר הזה אינו יכול לשנות את עוצמת הרטט, ולכן המחוון משנה את משך ההפעלה של המנוע ואת תדירותה בכל פעימה</string>
+    <string name="vibration_strength_min">מינימום</string>
+    <string name="vibration_strength_max">מקסימום</string>
+    <string name="percent">%1$d%%</string>
+    <string name="settings_display">תצוגה</string>
+    <string name="settings_keep_awake">השארת המסך דלוק</string>
+    <string name="settings_keep_awake_summary">בזמן שהמטרונום פועל</string>
+    <string name="settings_theme">ערכת נושא</string>
+    <string name="settings_defaults">ברירות מחדל</string>
+    <string name="settings_default_bpm">קצב ברירת מחדל</string>
+    <string name="settings_default_patient">סוג מטופל ברירת מחדל</string>
+    <string name="theme_system">מערכת</string>
+    <string name="theme_light">בהיר</string>
+    <string name="theme_dark">כהה</string>
+    <string name="settings_language">שפה</string>
+    <string name="language_system">מערכת</string>
+
+    <!-- Disclaimer -->
+    <string name="disclaimer">עזר אימון אישי. אינו מכשיר רפואי ואינו תחליף לשיקול דעת קליני או להכשרה.</string>
+</resources>
