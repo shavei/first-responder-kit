@@ -26,15 +26,18 @@ import kotlinx.coroutines.launch
 /** Everything the metronome screen draws. */
 data class MetronomeUiState(
     val patientType: PatientType,
-    val bpm: Int = Bpm.DEFAULT,
+    val bpm: Int = patientType.clampRate(Bpm.DEFAULT),
     val isRunning: Boolean = false,
     val soundEnabled: Boolean = true,
     val vibrationEnabled: Boolean = true,
     val vibrationAmplitude: Int = VibrationStrength.DEFAULT,
     val keepScreenOn: Boolean = true,
 ) {
-    val canDecreaseBpm: Boolean get() = bpm > Bpm.MIN
-    val canIncreaseBpm: Boolean get() = bpm < Bpm.MAX
+    /** The rates this patient's protocol allows — a single value for a newborn. */
+    val rateRange: IntRange get() = patientType.rateRange
+
+    val canDecreaseBpm: Boolean get() = bpm > rateRange.first
+    val canIncreaseBpm: Boolean get() = bpm < rateRange.last
 
     /** Beat period in milliseconds — the pulse animation is scaled to it. */
     val beatPeriodMillis: Long get() = Bpm.periodMillis(bpm)
@@ -69,7 +72,9 @@ class MetronomeViewModel(
     ) { settings, sessionBpm, isRunning ->
         MetronomeUiState(
             patientType = patientType,
-            bpm = Bpm.clamp(sessionBpm ?: settings.defaultBpm),
+            // The patient's protocol wins over the saved default: a newborn is beaten at
+            // 120 events a minute whatever rate the user prefers for an adult.
+            bpm = patientType.clampRate(Bpm.clamp(sessionBpm ?: settings.defaultBpm)),
             isRunning = isRunning,
             soundEnabled = settings.soundEnabled,
             vibrationEnabled = settings.vibrationEnabled,
@@ -109,9 +114,9 @@ class MetronomeViewModel(
     /** Stops the beat, e.g. when the screen is no longer in the foreground. */
     fun stop() = engine.stop()
 
-    /** Steps the rate by [delta] BPM, clamped to the supported range. */
+    /** Steps the rate by [delta] BPM, clamped to the range this patient's protocol allows. */
     fun adjustBpm(delta: Int) {
-        sessionBpm.value = Bpm.clamp(uiState.value.bpm + delta)
+        sessionBpm.value = patientType.clampRate(uiState.value.bpm + delta)
     }
 
     override fun onCleared() {

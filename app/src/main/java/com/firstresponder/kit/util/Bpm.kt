@@ -3,8 +3,13 @@ package com.firstresponder.kit.util
 import java.util.concurrent.TimeUnit
 
 /**
- * The single source of truth for the supported compression rate and the conversion
- * between beats per minute and a beat period.
+ * The rates the app supports overall, and the conversion between beats per minute and a
+ * beat period.
+ *
+ * This is the outer bound — every patient type's protocol rate falls inside it, and the
+ * scheduler clamps to it so no rate can ever produce a zero or negative period. Which
+ * rates a *given* patient allows is narrower and lives on
+ * [com.firstresponder.kit.domain.PatientType.rateRange].
  */
 object Bpm {
 
