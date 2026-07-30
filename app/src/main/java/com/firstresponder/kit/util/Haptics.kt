@@ -22,13 +22,13 @@ interface HapticPlayer {
     /**
      * True when the motor can vary how hard it hits.
      *
-     * When false the strength setting still works, but it lengthens the pulse instead of
-     * driving the motor harder — see [SystemHapticPlayer].
+     * When false the strength setting still works, but it lengthens and multiplies the hits
+     * instead of driving the motor harder — see [SystemHapticPlayer].
      */
     val hasAmplitudeControl: Boolean
 
     /**
-     * Emits a single short pulse.
+     * Emits one beat's worth of vibration — a burst of hits, see [VibrationPattern].
      *
      * Called on the engine's haptic output thread, never on the thread that times the beats,
      * so the binder call into the system server may block for the few milliseconds it
@@ -44,23 +44,25 @@ interface HapticPlayer {
  *
  * Three things decide how hard a beat actually lands, and this class pushes all of them:
  *
- *  - **A one-shot, not `EFFECT_CLICK`.** The predefined effects are the platform's UI
- *    haptics: fixed strength, tuned for a tick in the hand while looking at the screen, and
- *    far too faint to feel during compressions. A one-shot is the only API that exposes the
- *    motor's full range.
+ *  - **A hand-built waveform, not `EFFECT_CLICK`.** The predefined effects are the
+ *    platform's UI haptics: fixed strength, tuned for a tick in the hand while looking at
+ *    the screen, and far too faint to feel during compressions. Only an explicit waveform
+ *    exposes the motor's full range and lets the beat be shaped rather than merely fired.
  *  - **Alarm usage.** The system scales haptics by the usage they declare, and a
  *    *sonification* pulse is treated as a UI tick: attenuated by the touch-feedback
  *    intensity setting, and suppressed outright under Do Not Disturb on some devices. Alarm
  *    usage is scaled by the alarm intensity instead and is exempt from that suppression, so
  *    the same amplitude arrives at the motor considerably stronger. A CPR pace cue is an
  *    alarm in every sense that matters here.
- *  - **Pulse length.** A vibration motor takes 10–20 ms just to spin up, so a very short
- *    one-shot never reaches full excursion no matter what amplitude it asks for. The pulse
- *    therefore grows with the strength setting as well — at maximum it is long enough to
- *    read as a solid thump, while still leaving most of the beat silent.
+ *  - **A burst, not a pulse.** Amplitude tops out at 255, and past that the only way to make
+ *    a beat hit harder is to hit more often: the motor is slammed several times per beat,
+ *    each hit held long enough to reach full excursion, with a short silence in between so
+ *    the mass swings back and is thrown again. That is what turns a hum into a rattle you
+ *    can hear across the room. [VibrationPattern] holds the shape and the reasoning.
  *
- * Devices without amplitude control ignore the amplitude argument entirely; there the
- * duration alone carries the strength setting, so the slider still does something.
+ * Devices without amplitude control ignore the amplitude argument entirely; there the burst
+ * — more hits, held longer — carries the strength setting on its own, so the slider still
+ * does something.
  */
 class SystemHapticPlayer(context: Context) : HapticPlayer {
 
@@ -123,25 +125,18 @@ class SystemHapticPlayer(context: Context) : HapticPlayer {
     }
 
     private fun buildEffect(amplitude: Int): VibrationEffect {
-        val millis = durationFor(amplitude)
+        val timings = VibrationPattern.timingsFor(amplitude)
         return if (hasAmplitudeControl) {
-            VibrationEffect.createOneShot(millis, amplitude)
+            VibrationEffect.createWaveform(
+                timings,
+                VibrationPattern.amplitudesFor(amplitude),
+                NO_REPEAT,
+            )
         } else {
-            VibrationEffect.createOneShot(millis, VibrationEffect.DEFAULT_AMPLITUDE)
+            // Without an amplitudes array the platform reads the timings as off/on/off/…,
+            // starting off, so a leading zero puts the first hit at the top of the beat.
+            VibrationEffect.createWaveform(longArrayOf(0L, *timings), NO_REPEAT)
         }
-    }
-
-    /**
-     * Maps the strength scale onto a pulse length.
-     *
-     * Applied on every device, not just the ones without amplitude control: a motor needs
-     * time to reach the amplitude it was asked for, so length and strength go together.
-     */
-    private fun durationFor(amplitude: Int): Long {
-        val span = (VibrationStrength.MAX - VibrationStrength.MIN).toFloat()
-        val fraction = (VibrationStrength.clamp(amplitude) - VibrationStrength.MIN) / span
-        val extra = (LONGEST_PULSE_MILLIS - SHORTEST_PULSE_MILLIS) * fraction
-        return SHORTEST_PULSE_MILLIS + extra.toLong()
     }
 
     private fun resolveVibrator(context: Context): Vibrator? =
@@ -154,14 +149,7 @@ class SystemHapticPlayer(context: Context) : HapticPlayer {
         }
 
     private companion object {
-        /**
-         * How long the pulse lasts, from the weakest setting to the strongest.
-         *
-         * The top end is a deliberate thump rather than a tick: it is what makes maximum
-         * strength feel like maximum. It still ends long before the next beat, which is
-         * 500 ms away at the 120 BPM maximum, so beats never run into one another.
-         */
-        const val SHORTEST_PULSE_MILLIS = 15L
-        const val LONGEST_PULSE_MILLIS = 70L
+        /** Play the burst once per beat; the engine, not the vibrator, keeps the tempo. */
+        const val NO_REPEAT = -1
     }
 }

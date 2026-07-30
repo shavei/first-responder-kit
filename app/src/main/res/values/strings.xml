@@ -28,7 +28,7 @@
     <string name="settings_vibration_summary">Pulse the vibrator on every beat</string>
     <string name="settings_vibration_strength">Vibration strength</string>
     <string name="settings_vibration_strength_summary">Release the slider to feel it</string>
-    <string name="settings_vibration_strength_duration">This device cannot vary vibration strength, so the slider changes how long each pulse lasts</string>
+    <string name="settings_vibration_strength_duration">This device cannot vary vibration strength, so the slider changes how long and how often the motor is hit on each beat</string>
     <string name="vibration_strength_min">Min</string>
     <string name="vibration_strength_max">Max</string>
     <string name="percent">%1$d%%</string>
