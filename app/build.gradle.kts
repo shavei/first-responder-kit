@@ -18,6 +18,11 @@ val keystoreProperties = Properties().apply {
 }
 val hasReleaseKeystore = keystoreProperties.getProperty("storeFile") != null
 
+// The release workflow derives these from the git tag so a published APK reports the
+// version it was tagged with. Local builds just use the defaults below.
+val appVersionName = (project.findProperty("appVersionName") as String?)?.takeIf { it.isNotBlank() }
+val appVersionCode = (project.findProperty("appVersionCode") as String?)?.toIntOrNull()
+
 android {
     namespace = "com.firstresponder.kit"
     compileSdk = 35
@@ -26,8 +31,8 @@ android {
         applicationId = "com.firstresponder.kit"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode ?: 1
+        versionName = appVersionName ?: "1.0"
 
         // No instrumentation tests are shipped; the app has no analytics or network use.
         vectorDrawables { useSupportLibrary = true }

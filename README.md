@@ -6,6 +6,28 @@ practice. Fully offline, no accounts, no ads, no analytics, no internet permissi
 > Personal training aid. Not a medical device, and not a substitute for clinical judgement,
 > local protocols or hands-on training.
 
+## Download
+
+**[Download the latest APK](https://github.com/shavei/first-responder-kit/releases/latest/download/first-responder-kit.apk)**
+— or browse every build on the [releases page](https://github.com/shavei/first-responder-kit/releases/latest).
+
+Android 8.0 (API 26) or newer. It is a sideload, not a Play Store install, so open the file
+from your Downloads and allow your browser or file manager to "install unknown apps" when
+Android asks. The app requests no permissions beyond vibration and has no internet
+permission at all.
+
+Releases are built by [`.github/workflows/release.yml`](.github/workflows/release.yml) —
+push a tag and the workflow builds, tests and attaches the APK:
+
+```bash
+git tag v1.0.0 && git push origin v1.0.0
+```
+
+Unless the `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` and `KEY_PASSWORD`
+repository secrets are set, the APK is signed with the debug key. It installs fine, but the
+signature is not stable between builds, so upgrading over a previous install will fail until
+you uninstall it first. Set those secrets to sign with a real key and updates work normally.
+
 ## What it does
 
 - **Home screen** — three full-size buttons (👶 Infant · 🧒 Child · 🧑 Adult) plus Settings.
