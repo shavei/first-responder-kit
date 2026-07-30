@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">First Responder Kit</string>
+
+    <!-- Home -->
+    <string name="home_subtitle">CPR Metronome</string>
+    <string name="home_more_tools">More tools</string>
+    <string name="settings">Settings</string>
+
+    <!-- Patient types -->
+    <string name="patient_infant">Infant</string>
+    <string name="patient_child">Child</string>
+    <string name="patient_adult">Adult</string>
+
+    <!-- Metronome -->
+    <string name="bpm_unit">BPM</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="back">Back</string>
+    <string name="decrease_bpm">Decrease BPM</string>
+    <string name="increase_bpm">Increase BPM</string>
+    <string name="compressions_per_minute">compressions per minute</string>
+
+    <!-- Settings -->
+    <string name="settings_feedback">Beat feedback</string>
+    <string name="settings_sound">Sound</string>
+    <string name="settings_sound_summary">Play a click on every beat</string>
+    <string name="settings_vibration">Vibration</string>
+    <string name="settings_vibration_summary">Pulse the vibrator on every beat</string>
+    <string name="settings_display">Display</string>
+    <string name="settings_keep_awake">Keep screen awake</string>
+    <string name="settings_keep_awake_summary">While the metronome is running</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_defaults">Defaults</string>
+    <string name="settings_default_bpm">Default BPM</string>
+    <string name="settings_default_patient">Default patient type</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+
+    <!-- Disclaimer -->
+    <string name="disclaimer">Personal training aid. Not a medical device and not a substitute for clinical judgement or training.</string>
+</resources>
