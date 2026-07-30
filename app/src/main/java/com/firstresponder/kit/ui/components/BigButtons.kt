@@ -145,7 +145,11 @@ fun <T> SingleChoiceRow(
                 },
                 border = if (isSelected) null else unselectedBorder,
             ) {
-                Text(text = label(option), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = label(option),
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                )
             }
         }
     }

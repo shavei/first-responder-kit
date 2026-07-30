@@ -30,13 +30,16 @@ you uninstall it first. Set those secrets to sign with a real key and updates wo
 
 ## What it does
 
-- **Home screen** — three full-size buttons (👶 Infant · 🧒 Child · 🧑 Adult) plus Settings.
-  The patient type set as the default in Settings is accented.
-- **Metronome screen** — large BPM readout inside a circle that pulses on every beat,
-  −/+ rate control, and one big Start/Stop button.
+- **Home screen** — four full-size buttons (🍼 Newborn · 👶 Infant · 🧒 Child · 🧑 Adult)
+  plus Settings. The patient type set as the default in Settings is accented.
+- **Metronome screen** — large BPM readout inside a circle that pulses on every beat, the
+  compression depth, hand technique and compressions-to-breaths ratio for that patient,
+  a −/+ rate control, and one big Start/Stop button.
 - **Every beat** plays a short click, fires a burst of haptic hits and animates the circle.
   Sound and vibration can each be turned off.
-- **Rate** — 110 BPM by default, adjustable from 100 to 120 BPM.
+- **Rate** — the patient's protocol decides. 100–120 BPM for an adult, child or infant
+  (110 by default, adjustable). A newborn is fixed at 120 *events* per minute — 90
+  compressions plus 30 breaths at 3:1 — so the rate control sits disabled there.
 - **Vibration strength** — a slider across the vibrator's full range, appearing under the
   vibration toggle only while that toggle is on. Releasing it fires one beat at the chosen
   strength, so it can be set by feel. Full strength by default, where the phone rattles hard
@@ -95,7 +98,7 @@ app/src/main/java/com/firstresponder/kit/
 │  ├─ ClickPlayer.kt         playback interface
 │  ├─ AudioTrackClickPlayer.kt   low-latency AudioTrack implementation
 │  └─ MetronomeEngine.kt     drift-free beat scheduler
-├─ domain/PatientType.kt     infant / child / adult
+├─ domain/PatientType.kt     newborn / infant / child / adult, with their BLS values
 ├─ settings/                 UserSettings, repository interface, DataStore implementation
 ├─ util/                     BPM math, haptics, keep-screen-on effect
 ├─ viewmodel/                MetronomeViewModel, SettingsViewModel
@@ -174,6 +177,15 @@ Audio uses `AudioTrack` in `MODE_STATIC` with `PERFORMANCE_MODE_LOW_LATENCY`, at
 device's native sample rate — the conditions the platform needs before it grants the fast
 audio path. `MediaPlayer` is deliberately avoided. The click itself is synthesised at
 startup, so there is no asset to decode and no file I/O on the timing path.
+
+The click declares **alarm** usage too, for the same reason the vibration does and for one
+more: a track that declares sonification is routed to the system stream, which the platform
+force-mutes whenever the ringer is on silent or vibrate. On a phone kept on silent — which
+is most of them — the metronome was therefore completely inaudible, with the vibration
+still working and nothing on screen to explain the silence. The alarm stream ignores the
+ringer mode and is exempt from Do Not Disturb's default policy. It also carries its own
+volume, so the activity sets `volumeControlStream` to it and the hardware keys adjust the
+click from anywhere in the app rather than moving a media volume nothing here uses.
 
 The metronome stops when the screen leaves the foreground. There is no foreground service,
 so it deliberately does not beat in the background.

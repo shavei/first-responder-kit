@@ -1,5 +1,6 @@
 package com.firstresponder.kit
 
+import android.media.AudioManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -29,7 +30,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        val settingsFlow = (application as FirstResponderApp).container.settingsRepository.settings
+        // The click plays on the alarm stream (see AudioTrackClickPlayer), so that is the
+        // stream the volume keys have to reach — otherwise pressing volume-up while the
+        // metronome runs moves the media volume and the click stays exactly as quiet as it
+        // was. Set for the whole activity rather than just the metronome screen: this app
+        // makes one sound, and the keys should always be adjusting it.
+        volumeControlStream = AudioManager.STREAM_ALARM
+
+        val settingsFlow =(application as FirstResponderApp).container.settingsRepository.settings
 
         setContent {
             val settings by settingsFlow.collectAsStateWithLifecycle(initialValue = UserSettings())

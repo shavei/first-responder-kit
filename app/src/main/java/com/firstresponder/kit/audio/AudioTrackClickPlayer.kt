@@ -19,6 +19,15 @@ import android.util.Log
  * no allocation and no file I/O on the timing path. The track is created at the device's
  * native output sample rate with [AudioTrack.PERFORMANCE_MODE_LOW_LATENCY], which are the
  * conditions the platform requires before it will grant the fast audio path.
+ *
+ * The click plays on the **alarm** stream. That is not a detail: sonification and
+ * notification usages are routed to the system stream, which the platform force-mutes
+ * whenever the ringer is set to silent or vibrate — so on the phone of anyone who keeps it
+ * on silent (which is most people, and nearly everyone carrying it on a shift) the
+ * metronome came out completely inaudible with no indication why. The alarm stream is
+ * exempt from the ringer mode and from Do Not Disturb's default policy, and it carries its
+ * own volume that the hardware keys reach from anywhere in the app; see
+ * `MainActivity.volumeControlStream`.
  */
 class AudioTrackClickPlayer : ClickPlayer {
 
@@ -47,7 +56,13 @@ class AudioTrackClickPlayer : ClickPlayer {
             // plain track rather than losing the click altogether.
             track = buildTrack(sampleRate, bufferBytes, lowLatency = true)
                 ?: buildTrack(sampleRate, bufferBytes, lowLatency = false)
-            track?.write(pcm, 0, pcm.size)
+            track?.let { track ->
+                track.write(pcm, 0, pcm.size)
+                // The click is already synthesised with headroom, so the track itself runs
+                // wide open: the only thing that should decide how loud this is is the
+                // user's alarm volume.
+                track.setVolume(AudioTrack.getMaxVolume())
+            }
         }
     }
 
@@ -57,9 +72,10 @@ class AudioTrackClickPlayer : ClickPlayer {
             AudioTrack.Builder()
                 .setAudioAttributes(
                     AudioAttributes.Builder()
-                        // Sonification, not media: this is a UI-style cue, so it should not
-                        // be treated as music by the system or by other apps.
-                        .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                        // Alarm, so a silenced ringer cannot silence the metronome. See the
+                        // class comment — this is what makes the click audible at all on a
+                        // phone that is not on loud.
+                        .setUsage(AudioAttributes.USAGE_ALARM)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                         .build(),
                 )

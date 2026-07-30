@@ -159,17 +159,20 @@ fun MetronomeScreen(
         }
 
         Text(
-            text = stringResource(R.string.compressions_per_minute),
+            text = stringResource(state.patientType.rateUnitRes),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
 
+        ProtocolSummary(patientType = state.patientType)
+
         BpmStepper(
             bpm = state.bpm,
             onAdjust = onAdjustBpm,
             showValue = false,
+            range = state.rateRange,
         )
 
         BigActionButton(
@@ -191,6 +194,46 @@ fun MetronomeScreen(
     }
 }
 
+/**
+ * The rest of this patient's compression protocol: how deep, with what, and at what ratio.
+ *
+ * The rate alone is only part of what the responder has to get right, and it is the part
+ * they can already see. These are the values from the same BLS table that the rate comes
+ * from, so what is on screen is one consistent protocol rather than a number in isolation.
+ */
+@Composable
+private fun ProtocolSummary(patientType: PatientType, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            text = stringResource(
+                R.string.depth_and_technique,
+                stringResource(patientType.depthRes),
+                stringResource(patientType.techniqueRes),
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text = if (patientType.hasSingleRatio) {
+                stringResource(R.string.ratio_same, patientType.singleRescuerRatio)
+            } else {
+                stringResource(
+                    R.string.ratio_split,
+                    patientType.singleRescuerRatio,
+                    patientType.twoRescuerRatio,
+                )
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
 /** Fraction of one beat that the pulse takes to fade out. */
 private const val PULSE_DECAY_FRACTION = 0.55
 
@@ -202,6 +245,23 @@ private fun MetronomeScreenPreview() {
             MetronomeScreen(
                 state = MetronomeUiState(patientType = PatientType.ADULT, isRunning = true),
                 pulse = { 0.7f },
+                onBack = {},
+                onToggleRunning = {},
+                onAdjustBpm = {},
+            )
+        }
+    }
+}
+
+/** The other shape of the screen: a fixed rate, a 3:1 ratio and a disabled stepper. */
+@Preview(showBackground = true, heightDp = 780)
+@Composable
+private fun MetronomeScreenNewbornPreview() {
+    FirstResponderKitTheme(ThemeMode.DARK) {
+        Surface {
+            MetronomeScreen(
+                state = MetronomeUiState(patientType = PatientType.NEWBORN),
+                pulse = { 0f },
                 onBack = {},
                 onToggleRunning = {},
                 onAdjustBpm = {},

@@ -143,7 +143,9 @@ fun SettingsScreen(
                 SingleChoiceRow(
                     options = PatientType.entries,
                     selected = settings.defaultPatientType,
-                    label = { type -> "${type.emoji} ${stringResource(type.labelRes)}" },
+                    // Stacked rather than side by side: with four patient types there is
+                    // not enough width for the emoji and the name to share a line.
+                    label = { type -> "${type.emoji}\n${stringResource(type.labelRes)}" },
                     onSelect = onDefaultPatientTypeChange,
                 )
             }

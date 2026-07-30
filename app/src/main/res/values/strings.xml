@@ -7,6 +7,7 @@
     <string name="settings">Settings</string>
 
     <!-- Patient types -->
+    <string name="patient_newborn">Newborn</string>
     <string name="patient_infant">Infant</string>
     <string name="patient_child">Child</string>
     <string name="patient_adult">Adult</string>
@@ -19,6 +20,23 @@
     <string name="decrease_bpm">Decrease BPM</string>
     <string name="increase_bpm">Increase BPM</string>
     <string name="compressions_per_minute">compressions per minute</string>
+    <!-- A newborn beat is one event, not one compression: 3:1 gives 90 + 30 in the minute. -->
+    <string name="events_per_minute">events per minute — 90 compressions + 30 breaths</string>
+    <string name="bpm_range">%1$d–%2$d %3$s</string>
+    <string name="bpm_fixed">%1$d %2$s</string>
+
+    <!-- Compression guidance, from the BLS comparison table -->
+    <string name="depth_5_to_6_cm">5–6 cm deep</string>
+    <string name="depth_third_of_chest_5cm">At least ⅓ of chest depth (~5 cm)</string>
+    <string name="depth_third_of_chest_4cm">At least ⅓ of chest depth (~4 cm)</string>
+    <string name="depth_third_of_chest">At least ⅓ of chest depth</string>
+    <string name="technique_two_hands">2 hands</string>
+    <string name="technique_one_or_two_hands">1 or 2 hands</string>
+    <string name="technique_two_fingers_or_thumbs">2 fingers alone, 2 thumbs as a pair</string>
+    <string name="technique_two_thumbs">2 thumbs encircling</string>
+    <string name="ratio_same">%1$s compressions to breaths</string>
+    <string name="ratio_split">%1$s alone · %2$s as a pair</string>
+    <string name="depth_and_technique">%1$s · %2$s</string>
 
     <!-- Settings -->
     <string name="settings_feedback">Beat feedback</string>
