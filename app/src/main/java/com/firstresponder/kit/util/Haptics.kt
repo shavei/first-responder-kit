@@ -37,7 +37,29 @@ interface HapticPlayer {
      * @param amplitude strength on the [VibrationStrength] scale; values outside it are clamped.
      */
     fun pulse(amplitude: Int)
+
+    /**
+     * How long after [pulse] is called the beat is actually *felt*.
+     *
+     * The metronome fires each cue this much early so that the vibration lands on the beat
+     * together with the click, rather than a pipeline behind it. See
+     * [com.firstresponder.kit.audio.MetronomeEngine].
+     */
+    val startLatencyNanos: Long get() = DEFAULT_HAPTIC_LATENCY_NANOS
 }
+
+/**
+ * The assumed delay between asking for a vibration and feeling it (10 ms).
+ *
+ * Two things in series, neither of which the platform will report: a binder call into the
+ * system server and down to the driver, a couple of milliseconds; and the motor itself, which
+ * is a mass on a spring and needs several more to reach a displacement the skin registers.
+ * The figure is a considered estimate rather than a measurement — there is no API that
+ * returns it — but a fixed 10 ms of anticipation is much closer to the truth than the zero it
+ * replaces, and it is exposed on the interface so a device-specific value can be substituted
+ * without touching the engine.
+ */
+const val DEFAULT_HAPTIC_LATENCY_NANOS: Long = 10_000_000L
 
 /**
  * [HapticPlayer] backed by the platform [Vibrator].

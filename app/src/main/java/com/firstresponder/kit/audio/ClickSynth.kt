@@ -36,15 +36,12 @@ object ClickSynth {
     /**
      * Renders the click.
      *
-     * @param sampleRate the track's sample rate, in Hz.
-     * @param minFrames pad the result with silence up to this many frames. Used to satisfy
-     *   the minimum buffer size an [android.media.AudioTrack] will accept.
+     * @param sampleRate the stream's sample rate, in Hz.
      */
-    fun generate(sampleRate: Int, minFrames: Int = 0): ShortArray {
+    fun generate(sampleRate: Int): ShortArray {
         val clickFrames = sampleRate * DURATION_MS / 1_000
         val attackFrames = (sampleRate * ATTACK_MS / 1_000).coerceAtLeast(1)
-        val totalFrames = maxOf(clickFrames, minFrames)
-        val samples = ShortArray(totalFrames)
+        val samples = ShortArray(clickFrames)
 
         val angularStep = 2.0 * PI * TONE_HZ / sampleRate
         for (frame in 0 until clickFrames) {
@@ -54,7 +51,6 @@ object ClickSynth {
             val value = sin(angularStep * frame) * decay * attack * PEAK
             samples[frame] = (value * Short.MAX_VALUE).roundToInt().toShort()
         }
-        // Frames beyond the click are left at zero: silent padding.
         return samples
     }
 }

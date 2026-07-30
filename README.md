@@ -47,6 +47,45 @@ you uninstall it first. Set those secrets to sign with a real key and updates wo
 - **Settings** — sound, vibration, vibration strength, keep-screen-awake, default BPM,
   default patient type and theme (system / light / dark). Stored locally with DataStore.
 
+## How the timing works
+
+A compression metronome is only worth carrying if the pace it gives is the pace you get, so
+the beat is not driven by a timer at all.
+
+- **The audio hardware keeps the tempo.** The clicks are drawn into one continuous audio
+  stream at exact frame offsets rather than triggered one at a time, so their spacing is set
+  by the output's crystal rather than by thread scheduling. A busy CPU, a garbage collection
+  or a thermal throttle cannot change it. Beat positions are computed from the start of the
+  session in exact integer arithmetic, so nothing rounds off and accumulates — every beat is
+  within half a frame, about ten microseconds, of where it belongs, however long the session
+  runs.
+- **The three cues are aligned, not merely simultaneous.** A click crosses a buffered audio
+  pipeline, a vibration is a binder call plus a motor that takes milliseconds to reach full
+  strength, and an animation cannot appear before the next display frame. Fired together they
+  arrive tens of milliseconds apart — a fifth of a beat, felt as a smeared double cue. So the
+  app asks the platform where the stream really is (`AudioTrack.getTimestamp`), works out the
+  instant each beat will be *heard*, and fires every other cue early by its own delivery lag
+  so they land on the ear, the skin and the eye at the same moment.
+- **The stream keeps running when the sound is off**, because it is the timebase for the
+  vibration too — vibrate-only practice is timed by the same clock.
+- **A beat that cannot go out on time is dropped, never rushed.** A missing cue is a smaller
+  lie about the pace than two cues in quick succession, and every gap the user feels stays at
+  least a full period.
+- **It is measured.** Every cue is compared against the instant it was scheduled for, and a
+  summary — beats, worst error, RMS jitter, the period actually delivered, audio underruns —
+  is logged under the `Metronome` tag when the metronome stops, so the accuracy can be checked
+  on a real device rather than assumed:
+
+  ```
+  adb logcat -s Metronome
+  vibration: 118 beats, max 1.83 ms off, rms 0.51 ms, period 545.45 ms, 0 dropped | …
+  ```
+
+The timing arithmetic — the beat grid, the audio clock and the statistics — is plain Kotlin
+with no Android types, and is covered by unit tests that run on the JVM: no accumulated drift
+over an hour at every supported rate, no gap shortened by a rate change, and each cue fired
+early by exactly its own lag.
+
 ## Building
 
 Requirements: Android Studio (Ladybug or newer) or a JDK 17+ command line, plus the
