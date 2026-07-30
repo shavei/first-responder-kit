@@ -26,6 +26,7 @@ import com.firstresponder.kit.ui.components.SectionHeader
 import com.firstresponder.kit.ui.components.SettingBlock
 import com.firstresponder.kit.ui.components.SettingToggleRow
 import com.firstresponder.kit.ui.components.SingleChoiceRow
+import com.firstresponder.kit.ui.components.VibrationStrengthSlider
 import com.firstresponder.kit.ui.theme.FirstResponderKitTheme
 import com.firstresponder.kit.viewmodel.SettingsUiState
 import com.firstresponder.kit.viewmodel.SettingsViewModel
@@ -44,6 +45,7 @@ fun SettingsRoute(
         onBack = onBack,
         onSoundChange = viewModel::setSoundEnabled,
         onVibrationChange = viewModel::setVibrationEnabled,
+        onVibrationAmplitudeChange = viewModel::setVibrationAmplitude,
         onKeepScreenOnChange = viewModel::setKeepScreenOn,
         onAdjustDefaultBpm = viewModel::adjustDefaultBpm,
         onDefaultPatientTypeChange = viewModel::setDefaultPatientType,
@@ -62,6 +64,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onSoundChange: (Boolean) -> Unit,
     onVibrationChange: (Boolean) -> Unit,
+    onVibrationAmplitudeChange: (Int) -> Unit,
     onKeepScreenOnChange: (Boolean) -> Unit,
     onAdjustDefaultBpm: (Int) -> Unit,
     onDefaultPatientTypeChange: (PatientType) -> Unit,
@@ -94,6 +97,23 @@ fun SettingsScreen(
                 // Nothing to toggle on a device without a vibrator.
                 enabled = state.hasVibrator,
             )
+            // Strength only matters while the pulse is actually firing, so the slider follows
+            // the toggle rather than sitting there greyed out.
+            if (settings.vibrationEnabled && state.hasVibrator) {
+                SettingBlock(
+                    title = stringResource(R.string.settings_vibration_strength),
+                    summary = if (state.hasAmplitudeControl) {
+                        stringResource(R.string.settings_vibration_strength_summary)
+                    } else {
+                        stringResource(R.string.settings_vibration_strength_duration)
+                    },
+                ) {
+                    VibrationStrengthSlider(
+                        amplitude = settings.vibrationAmplitude,
+                        onAmplitudeChange = onVibrationAmplitudeChange,
+                    )
+                }
+            }
 
             HorizontalDivider()
 
@@ -155,6 +175,7 @@ private fun SettingsScreenPreview() {
                 onBack = {},
                 onSoundChange = {},
                 onVibrationChange = {},
+                onVibrationAmplitudeChange = {},
                 onKeepScreenOnChange = {},
                 onAdjustDefaultBpm = {},
                 onDefaultPatientTypeChange = {},

@@ -18,6 +18,9 @@ interface SettingsRepository {
 
     suspend fun setVibrationEnabled(enabled: Boolean)
 
+    /** Values outside the supported range are clamped by the implementation. */
+    suspend fun setVibrationAmplitude(amplitude: Int)
+
     suspend fun setKeepScreenOn(enabled: Boolean)
 
     /** Values outside the supported range are clamped by the implementation. */
