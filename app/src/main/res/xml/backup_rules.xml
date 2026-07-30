@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the local preference store is worth backing up (Android 11 and below). -->
+<full-backup-content>
+    <include
+        domain="file"
+        path="datastore/" />
+</full-backup-content>
