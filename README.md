@@ -16,12 +16,15 @@ from your Downloads and allow your browser or file manager to "install unknown a
 Android asks. The app requests no permissions beyond vibration and has no internet
 permission at all.
 
-Releases are built by [`.github/workflows/release.yml`](.github/workflows/release.yml) —
-push a tag and the workflow builds, tests and attaches the APK:
+Releases are built by [`.github/workflows/release.yml`](.github/workflows/release.yml), which
+runs the tests, builds the release APK and attaches it to a GitHub Release. Either push a tag:
 
 ```bash
 git tag v1.0.0 && git push origin v1.0.0
 ```
+
+…or, from the **Actions** tab, run **Release APK**, pick the branch and type the version. The
+tag is created at the commit that was built, so this works without pushing a tag yourself.
 
 Unless the `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` and `KEY_PASSWORD`
 repository secrets are set, the APK is signed with the debug key. It installs fine, but the

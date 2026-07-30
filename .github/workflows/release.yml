@@ -4,8 +4,11 @@ name: Release APK
 # link to a stable download URL:
 #   https://github.com/shavei/first-responder-kit/releases/latest/download/first-responder-kit.apk
 #
-# Trigger it by pushing a tag:  git tag v1.0.0 && git push origin v1.0.0
-# or from the Actions tab (Run workflow) with an existing tag.
+# Two ways to cut a release:
+#   - push a tag:  git tag v1.0.0 && git push origin v1.0.0
+#   - Actions tab → Run workflow, pick the branch to release from and type the
+#     version. The tag does not have to exist; it is created at the commit that
+#     was built. This is the path to use when you cannot push tags directly.
 
 on:
   push:
@@ -14,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing tag to build and release (e.g. v1.0.0)"
+        description: "Version tag to publish (e.g. v1.0.0) — created if it does not exist"
         required: true
 
 permissions:
@@ -25,10 +28,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out the tag
+      # For a tag push this is the tag; for a manual run it is the ref chosen in
+      # the Actions tab. Either way the release is built from the checked-out commit.
+      - name: Check out the commit to release
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
           fetch-depth: 0
 
       - name: Set up JDK 17
@@ -112,7 +116,10 @@ jobs:
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release upload "$TAG" dist/first-responder-kit.apk --clobber
           else
+            # --target creates the tag at the commit that was just built when the
+            # tag does not already exist, so a manual run needs no tag push.
             gh release create "$TAG" dist/first-responder-kit.apk \
+              --target "$GITHUB_SHA" \
               --title "First Responder Kit ${{ steps.version.outputs.name }}" \
               --generate-notes
           fi
