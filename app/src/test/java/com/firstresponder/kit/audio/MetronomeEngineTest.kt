@@ -84,6 +84,66 @@ class MetronomeEngineTest {
         }
     }
 
+    /**
+     * The complaint this guards against: beats that are individually close enough to the
+     * grid but unevenly *spaced*, so the pace is heard as two quick beats and a slow one.
+     * Absolute position can be forgiven; a gap that is short cannot.
+     */
+    @Test
+    fun `consecutive beats are evenly spaced`() {
+        val bpm = 120
+        val periodMillis = Bpm.periodNanos(bpm) / 1_000_000.0
+
+        engine.start(MetronomeConfig(bpm = bpm))
+        Thread.sleep(3_000)
+        engine.stop()
+
+        val times = clickPlayer.clickTimesNanos.toList()
+        assertTrue("expected several beats, got ${times.size}", times.size >= 5)
+
+        times.zipWithNext().forEachIndexed { index, (previous, next) ->
+            val gapMillis = (next - previous) / 1_000_000.0
+            assertTrue(
+                "gap ${index + 1} was ${gapMillis}ms, expected ~${periodMillis}ms",
+                abs(gapMillis - periodMillis) < MAX_SPACING_ERROR_MILLIS,
+            )
+        }
+    }
+
+    /** A late beat must never be compensated for by pulling the next one in early. */
+    @Test
+    fun `a stalled beat does not shorten the following gap`() {
+        val bpm = 120
+        val periodMillis = Bpm.periodNanos(bpm) / 1_000_000.0
+        // Stalls the output thread on the third beat, long enough to miss the next deadline.
+        val stallingClickPlayer = object : ClickPlayer {
+            val times = CopyOnWriteArrayList<Long>()
+            override fun prepare() = Unit
+            override fun click() {
+                times += System.nanoTime()
+                if (times.size == 3) Thread.sleep(STALL_MILLIS)
+            }
+            override fun release() = Unit
+        }
+        val engine = MetronomeEngine(stallingClickPlayer, hapticPlayer)
+
+        engine.start(MetronomeConfig(bpm = bpm))
+        Thread.sleep(3_500)
+        engine.stop()
+
+        val times = stallingClickPlayer.times.toList()
+        assertTrue("expected beats after the stall, got ${times.size}", times.size >= 5)
+
+        times.zipWithNext().forEachIndexed { index, (previous, next) ->
+            val gapMillis = (next - previous) / 1_000_000.0
+            // Long gaps are tolerated — the stall itself makes one. Short ones are the bug.
+            assertTrue(
+                "gap ${index + 1} was only ${gapMillis}ms, expected at least ~${periodMillis}ms",
+                gapMillis > periodMillis - MAX_SPACING_ERROR_MILLIS,
+            )
+        }
+    }
+
     @Test
     fun `sound and vibration can be silenced independently`() {
         engine.start(MetronomeConfig(bpm = 120, soundEnabled = false, vibrationEnabled = true))
@@ -163,5 +223,11 @@ class MetronomeEngineTest {
 
     private companion object {
         const val MAX_GRID_ERROR_MILLIS = 40.0
+
+        /** How far one gap between beats may stray from the beat period. */
+        const val MAX_SPACING_ERROR_MILLIS = 60.0
+
+        /** Longer than one beat at 120 BPM, so the stall is guaranteed to miss a deadline. */
+        const val STALL_MILLIS = 700L
     }
 }
