@@ -16,7 +16,13 @@ interface ClickPlayer {
      */
     fun prepare()
 
-    /** Plays one click. Must be cheap enough to call from the timing thread. */
+    /**
+     * Plays one click.
+     *
+     * Called on the engine's audio output thread, never on the thread that times the beats,
+     * so it may block for the usual few milliseconds a platform call takes. It should still
+     * return well inside one beat: an implementation that overruns will have beats dropped.
+     */
     fun click()
 
     /** Releases the audio resources. The player can be [prepare]d again afterwards. */
