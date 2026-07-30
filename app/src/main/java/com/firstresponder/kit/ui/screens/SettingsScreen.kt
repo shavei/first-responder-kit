@@ -145,7 +145,8 @@ fun SettingsScreen(
                     selected = settings.defaultPatientType,
                     // Stacked rather than side by side: with four patient types there is
                     // not enough width for the emoji and the name to share a line.
-                    label = { type -> "${type.emoji}\n${stringResource(type.labelRes)}" },
+                    emoji = { type -> type.emoji },
+                    label = { type -> stringResource(type.labelRes) },
                     onSelect = onDefaultPatientTypeChange,
                 )
             }

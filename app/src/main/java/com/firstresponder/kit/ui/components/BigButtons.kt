@@ -2,6 +2,7 @@ package com.firstresponder.kit.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -16,14 +17,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 
 /** Shared minimum height for the primary controls. Comfortably above the 48 dp guideline. */
@@ -113,7 +123,8 @@ fun BigOutlinedButton(
 /**
  * A row of mutually exclusive options (theme, patient type, …).
  *
- * Generic so every "pick one of N" setting looks and behaves the same.
+ * Generic so every "pick one of N" setting looks and behaves the same. [emoji] is optional
+ * and sits above the label on its own line.
  */
 @Composable
 fun <T> SingleChoiceRow(
@@ -123,6 +134,7 @@ fun <T> SingleChoiceRow(
     label: @Composable (T) -> String,
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
+    emoji: ((T) -> String)? = null,
 ) {
     val unselectedBorder = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     Row(
@@ -144,15 +156,69 @@ fun <T> SingleChoiceRow(
                     ButtonDefaults.outlinedButtonColors()
                 },
                 border = if (isSelected) null else unselectedBorder,
+                // Tighter than the button default: four options share the screen width and
+                // every dp of it belongs to the label.
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp),
             ) {
-                Text(
-                    text = label(option),
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    if (emoji != null) {
+                        Text(
+                            text = emoji(option),
+                            fontSize = 22.sp,
+                            lineHeight = 26.sp,
+                            // Decoration only — the label already names the option.
+                            modifier = Modifier.clearAndSetSemantics { },
+                        )
+                    }
+                    FitOnOneLineText(
+                        text = label(option),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
             }
         }
     }
+}
+
+/**
+ * A label that shrinks its own text until it fits on a single line.
+ *
+ * Names like "Newborn" have nowhere to wrap, so a chip too narrow for them would otherwise
+ * break the word across lines. Stepping the size down keeps every option readable on small
+ * screens and at large system font scales alike.
+ */
+@Composable
+private fun FitOnOneLineText(
+    text: String,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+    minFontSize: TextUnit = 11.sp,
+) {
+    val startingSize = if (style.fontSize.isSpecified) style.fontSize else 16.sp
+    var fontSize by remember(text, startingSize) { mutableStateOf(startingSize) }
+    // Drawing is held back while the size is still being narrowed down, so the oversized
+    // first pass never reaches the screen.
+    var settled by remember(text, startingSize) { mutableStateOf(false) }
+
+    Text(
+        text = text,
+        style = style.copy(fontSize = fontSize, lineHeight = TextUnit.Unspecified),
+        maxLines = 1,
+        softWrap = false,
+        overflow = TextOverflow.Ellipsis,
+        textAlign = TextAlign.Center,
+        modifier = modifier.drawWithContent { if (settled) drawContent() },
+        onTextLayout = { result ->
+            if (result.hasVisualOverflow && fontSize > minFontSize) {
+                fontSize = (fontSize.value - 1f).sp
+            } else {
+                settled = true
+            }
+        },
+    )
 }
 
 /** Heading above a related block of settings. */
