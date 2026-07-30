@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        // The click plays on the alarm stream (see AudioTrackClickPlayer), so that is the
+        // The click plays on the alarm stream (see StreamingClickTrack), so that is the
         // stream the volume keys have to reach — otherwise pressing volume-up while the
         // metronome runs moves the media volume and the click stays exactly as quiet as it
         // was. Set for the whole activity rather than just the metronome screen: this app

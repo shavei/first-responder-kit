@@ -1,8 +1,8 @@
 package com.firstresponder.kit
 
 import android.content.Context
-import com.firstresponder.kit.audio.AudioTrackClickPlayer
 import com.firstresponder.kit.audio.MetronomeEngine
+import com.firstresponder.kit.audio.StreamingClickTrack
 import com.firstresponder.kit.settings.DataStoreSettingsRepository
 import com.firstresponder.kit.settings.SettingsRepository
 import com.firstresponder.kit.util.HapticPlayer
@@ -31,7 +31,7 @@ class AppContainer(context: Context) {
      */
     val metronomeEngine: MetronomeEngine by lazy {
         MetronomeEngine(
-            clickPlayer = AudioTrackClickPlayer(),
+            clickTrack = StreamingClickTrack(appContext),
             hapticPlayer = hapticPlayer,
         )
     }
