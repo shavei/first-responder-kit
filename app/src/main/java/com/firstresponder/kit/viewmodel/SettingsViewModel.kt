@@ -22,27 +22,54 @@ import kotlinx.coroutines.launch
 data class SettingsUiState(
     val settings: UserSettings = UserSettings(),
     val hasVibrator: Boolean = true,
+    /** False when the strength slider lengthens the pulse instead of driving the motor harder. */
+    val hasAmplitudeControl: Boolean = true,
 )
 
 /** Reads and writes [UserSettings]. Every change is persisted immediately. */
 class SettingsViewModel(
     private val repository: SettingsRepository,
-    hapticPlayer: HapticPlayer,
+    private val hapticPlayer: HapticPlayer,
 ) : ViewModel() {
 
     private val hasVibrator = hapticPlayer.isAvailable
+    private val hasAmplitudeControl = hapticPlayer.hasAmplitudeControl
 
     val uiState: StateFlow<SettingsUiState> = repository.settings
-        .map { settings -> SettingsUiState(settings = settings, hasVibrator = hasVibrator) }
+        .map { settings ->
+            SettingsUiState(
+                settings = settings,
+                hasVibrator = hasVibrator,
+                hasAmplitudeControl = hasAmplitudeControl,
+            )
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
-            initialValue = SettingsUiState(hasVibrator = hasVibrator),
+            initialValue = SettingsUiState(
+                hasVibrator = hasVibrator,
+                hasAmplitudeControl = hasAmplitudeControl,
+            ),
         )
 
     fun setSoundEnabled(enabled: Boolean) = update { repository.setSoundEnabled(enabled) }
 
     fun setVibrationEnabled(enabled: Boolean) = update { repository.setVibrationEnabled(enabled) }
+
+    /**
+     * Stores the chosen strength and fires one pulse at it, so the slider can be judged by
+     * feel without starting the metronome.
+     *
+     * The amplitude is passed in rather than read back from [uiState] because the stored
+     * value only arrives after a DataStore round-trip, and the preview has to match the
+     * position the finger just left.
+     */
+    fun setVibrationAmplitude(amplitude: Int) {
+        update { repository.setVibrationAmplitude(amplitude) }
+        if (uiState.value.settings.vibrationEnabled) {
+            hapticPlayer.pulse(amplitude)
+        }
+    }
 
     fun setKeepScreenOn(enabled: Boolean) = update { repository.setKeepScreenOn(enabled) }
 

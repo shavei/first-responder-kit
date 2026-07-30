@@ -26,6 +26,12 @@
     <string name="settings_sound_summary">Play a click on every beat</string>
     <string name="settings_vibration">Vibration</string>
     <string name="settings_vibration_summary">Pulse the vibrator on every beat</string>
+    <string name="settings_vibration_strength">Vibration strength</string>
+    <string name="settings_vibration_strength_summary">Release the slider to feel it</string>
+    <string name="settings_vibration_strength_duration">This device cannot vary vibration strength, so the slider changes how long each pulse lasts</string>
+    <string name="vibration_strength_min">Min</string>
+    <string name="vibration_strength_max">Max</string>
+    <string name="percent">%1$d%%</string>
     <string name="settings_display">Display</string>
     <string name="settings_keep_awake">Keep screen awake</string>
     <string name="settings_keep_awake_summary">While the metronome is running</string>

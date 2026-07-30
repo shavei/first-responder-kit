@@ -3,6 +3,7 @@ package com.firstresponder.kit.audio
 import android.os.Process
 import com.firstresponder.kit.util.Bpm
 import com.firstresponder.kit.util.HapticPlayer
+import com.firstresponder.kit.util.VibrationStrength
 import java.util.concurrent.locks.LockSupport
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -17,6 +18,7 @@ data class MetronomeConfig(
     val bpm: Int = Bpm.DEFAULT,
     val soundEnabled: Boolean = true,
     val vibrationEnabled: Boolean = true,
+    val vibrationAmplitude: Int = VibrationStrength.DEFAULT,
 )
 
 /**
@@ -129,7 +131,7 @@ class MetronomeEngine(
 
             val config = this.config
             if (config.soundEnabled) clickPlayer.click()
-            if (config.vibrationEnabled) hapticPlayer.pulse()
+            if (config.vibrationEnabled) hapticPlayer.pulse(config.vibrationAmplitude)
             _beats.tryEmit(beatIndex)
             beatIndex++
 

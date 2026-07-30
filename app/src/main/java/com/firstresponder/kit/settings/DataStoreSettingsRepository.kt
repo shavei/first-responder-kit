@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.firstresponder.kit.domain.PatientType
 import com.firstresponder.kit.util.Bpm
+import com.firstresponder.kit.util.VibrationStrength
 import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -47,6 +48,9 @@ class DataStoreSettingsRepository(
 
     override suspend fun setVibrationEnabled(enabled: Boolean) = edit { it[Keys.VIBRATION] = enabled }
 
+    override suspend fun setVibrationAmplitude(amplitude: Int) =
+        edit { it[Keys.VIBRATION_AMPLITUDE] = VibrationStrength.clamp(amplitude) }
+
     override suspend fun setKeepScreenOn(enabled: Boolean) = edit { it[Keys.KEEP_SCREEN_ON] = enabled }
 
     override suspend fun setDefaultBpm(bpm: Int) = edit { it[Keys.DEFAULT_BPM] = Bpm.clamp(bpm) }
@@ -66,6 +70,9 @@ class DataStoreSettingsRepository(
         return UserSettings(
             soundEnabled = this[Keys.SOUND] ?: defaults.soundEnabled,
             vibrationEnabled = this[Keys.VIBRATION] ?: defaults.vibrationEnabled,
+            vibrationAmplitude = VibrationStrength.clamp(
+                this[Keys.VIBRATION_AMPLITUDE] ?: defaults.vibrationAmplitude,
+            ),
             keepScreenOn = this[Keys.KEEP_SCREEN_ON] ?: defaults.keepScreenOn,
             defaultBpm = Bpm.clamp(this[Keys.DEFAULT_BPM] ?: defaults.defaultBpm),
             defaultPatientType = PatientType.fromStorageName(this[Keys.DEFAULT_PATIENT_TYPE]),
@@ -76,6 +83,7 @@ class DataStoreSettingsRepository(
     private object Keys {
         val SOUND = booleanPreferencesKey("sound_enabled")
         val VIBRATION = booleanPreferencesKey("vibration_enabled")
+        val VIBRATION_AMPLITUDE = intPreferencesKey("vibration_amplitude")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
         val DEFAULT_BPM = intPreferencesKey("default_bpm")
         val DEFAULT_PATIENT_TYPE = stringPreferencesKey("default_patient_type")

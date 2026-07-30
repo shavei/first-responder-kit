@@ -2,6 +2,7 @@ package com.firstresponder.kit.settings
 
 import com.firstresponder.kit.domain.PatientType
 import com.firstresponder.kit.util.Bpm
+import com.firstresponder.kit.util.VibrationStrength
 
 /**
  * Every user-configurable value in the app, in one immutable snapshot.
@@ -12,6 +13,8 @@ import com.firstresponder.kit.util.Bpm
 data class UserSettings(
     val soundEnabled: Boolean = true,
     val vibrationEnabled: Boolean = true,
+    /** Strength of the per-beat pulse, on the [VibrationStrength] scale. */
+    val vibrationAmplitude: Int = VibrationStrength.DEFAULT,
     val keepScreenOn: Boolean = true,
     val defaultBpm: Int = Bpm.DEFAULT,
     val defaultPatientType: PatientType = PatientType.ADULT,

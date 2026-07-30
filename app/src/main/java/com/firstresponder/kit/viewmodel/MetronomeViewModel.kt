@@ -13,6 +13,7 @@ import com.firstresponder.kit.audio.MetronomeEngine
 import com.firstresponder.kit.domain.PatientType
 import com.firstresponder.kit.settings.SettingsRepository
 import com.firstresponder.kit.util.Bpm
+import com.firstresponder.kit.util.VibrationStrength
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -29,6 +30,7 @@ data class MetronomeUiState(
     val isRunning: Boolean = false,
     val soundEnabled: Boolean = true,
     val vibrationEnabled: Boolean = true,
+    val vibrationAmplitude: Int = VibrationStrength.DEFAULT,
     val keepScreenOn: Boolean = true,
 ) {
     val canDecreaseBpm: Boolean get() = bpm > Bpm.MIN
@@ -71,6 +73,7 @@ class MetronomeViewModel(
             isRunning = isRunning,
             soundEnabled = settings.soundEnabled,
             vibrationEnabled = settings.vibrationEnabled,
+            vibrationAmplitude = settings.vibrationAmplitude,
             keepScreenOn = settings.keepScreenOn,
         )
     }.stateIn(
@@ -121,6 +124,7 @@ class MetronomeViewModel(
         bpm = bpm,
         soundEnabled = soundEnabled,
         vibrationEnabled = vibrationEnabled,
+        vibrationAmplitude = vibrationAmplitude,
     )
 
     companion object {

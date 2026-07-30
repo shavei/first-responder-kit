@@ -31,13 +31,17 @@ private class RecordingClickPlayer : ClickPlayer {
 }
 
 private class RecordingHapticPlayer : HapticPlayer {
-    var pulses = 0
-        private set
+    /** The amplitude of every pulse, in order. */
+    val amplitudes = CopyOnWriteArrayList<Int>()
+
+    val pulses: Int get() = amplitudes.size
 
     override val isAvailable = true
 
-    override fun pulse() {
-        pulses++
+    override val hasAmplitudeControl = true
+
+    override fun pulse(amplitude: Int) {
+        amplitudes += amplitude
     }
 }
 
@@ -88,6 +92,44 @@ class MetronomeEngineTest {
 
         assertEquals(0, clickPlayer.clickTimesNanos.size)
         assertTrue("expected haptic pulses", hapticPlayer.pulses >= 2)
+    }
+
+    @Test
+    fun `the configured vibration strength reaches every pulse`() {
+        val amplitude = 120
+
+        engine.start(
+            MetronomeConfig(
+                bpm = 120,
+                soundEnabled = false,
+                vibrationEnabled = true,
+                vibrationAmplitude = amplitude,
+            ),
+        )
+        Thread.sleep(1_200)
+        engine.stop()
+
+        val amplitudes = hapticPlayer.amplitudes.toList()
+        assertTrue("expected haptic pulses", amplitudes.size >= 2)
+        assertTrue("expected every pulse at $amplitude, got $amplitudes", amplitudes.all { it == amplitude })
+    }
+
+    @Test
+    fun `a strength change applies to later pulses without restarting`() {
+        engine.start(MetronomeConfig(bpm = 120, soundEnabled = false, vibrationEnabled = true))
+        Thread.sleep(600)
+        engine.updateConfig(
+            MetronomeConfig(
+                bpm = 120,
+                soundEnabled = false,
+                vibrationEnabled = true,
+                vibrationAmplitude = 60,
+            ),
+        )
+        Thread.sleep(900)
+        engine.stop()
+
+        assertEquals(60, hapticPlayer.amplitudes.last())
     }
 
     @Test

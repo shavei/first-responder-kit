@@ -37,8 +37,11 @@ you uninstall it first. Set those secrets to sign with a real key and updates wo
 - **Every beat** plays a short click, fires a haptic pulse and animates the circle. Sound
   and vibration can each be turned off.
 - **Rate** — 110 BPM by default, adjustable from 100 to 120 BPM.
-- **Settings** — sound, vibration, keep-screen-awake, default BPM, default patient type
-  and theme (system / light / dark). Stored locally with DataStore.
+- **Vibration strength** — a slider across the vibrator's full range, appearing under the
+  vibration toggle only while that toggle is on. Releasing it fires one pulse at the chosen
+  strength, so it can be set by feel. Full strength by default.
+- **Settings** — sound, vibration, vibration strength, keep-screen-awake, default BPM,
+  default patient type and theme (system / light / dark). Stored locally with DataStore.
 
 ## Building
 
@@ -126,8 +129,27 @@ Accuracy is the whole point of the app, so the beat is not scheduled with
 Changing the BPM while running applies from the next beat and preserves the grid.
 
 `MetronomeEngineTest` runs the engine for real on the JVM and asserts that every beat lands
-on the ideal grid, that the sound and vibration switches are independent, and that starting
+on the ideal grid, that the sound and vibration switches are independent, that the configured
+vibration strength reaches every pulse and follows a mid-session change, and that starting
 twice does not spawn a second beat stream.
+
+## How the vibration works
+
+The pulse is an explicit one-shot at a chosen amplitude, **not** `VibrationEffect.EFFECT_CLICK`.
+The predefined effects are the platform's UI haptics: fixed strength, tuned for a tick in the
+hand while you are looking at the screen, and far too faint to feel during compressions. A
+one-shot is the only API that exposes the motor's full range, so that is what the strength
+slider drives — 1 to 255, the platform's own amplitude scale, stored directly rather than as a
+percentage so the slider's ends really are the device's minimum and maximum.
+
+Devices whose motor cannot vary its strength (`Vibrator.hasAmplitudeControl()` is false) ignore
+the amplitude argument entirely. There the slider maps to pulse *duration* instead, a longer
+buzz being the only remaining way to make a beat more noticeable, and the settings screen says
+so. The slider therefore does something on every device.
+
+`VibrationEffect` instances are cached and rebuilt only when the strength changes, which keeps
+the promise that nothing on the timing thread allocates: within a session the strength is
+constant, so every beat after the first reuses one object.
 
 Audio uses `AudioTrack` in `MODE_STATIC` with `PERFORMANCE_MODE_LOW_LATENCY`, at the
 device's native sample rate — the conditions the platform needs before it grants the fast
