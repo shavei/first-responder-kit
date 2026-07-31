@@ -29,10 +29,14 @@ permission at all.
   the settings are lost. Releases up to **v1.6.0** each carried a different throwaway key,
   so this hit every upgrade between them — from v1.6.1 on the key is stable and upgrades
   install straight over the top.
-- **"Unsafe app blocked", or a Play Protect warning.** Play Protect flags any app it has
-  not seen distributed at scale, which covers everything sideloaded. Every release lists
-  the APK's SHA-256 and its signing certificate's SHA-256; check the download against them
-  if you want to be sure it is the file this repository's workflow built.
+- **"App blocked to protect your device — Play Protect hasn't seen an app from this
+  developer before."** Not a verdict on the build: Play Protect scores the signing key's
+  reputation, and a key only earns one by being installed at scale through a store, so
+  everything sideloaded starts unknown. Tap **More details**, then **Install anyway**.
+  Every release lists the APK's SHA-256 and its signing certificate's SHA-256; check the
+  download against them first if you want to be sure it is the file this repository's
+  workflow built. See [Developer verification](#developer-verification) for what removes
+  the warning rather than clicking past it.
 
 Releases are built by [`.github/workflows/release.yml`](.github/workflows/release.yml) —
 push a tag and the workflow builds, tests, verifies the signature and attaches the APK:
@@ -49,6 +53,33 @@ build cannot be installed over any other. Run
 and prints the four values to paste under **Settings → Secrets and variables → Actions**.
 Back the keystore up — Android identifies the app by that key, and losing it means every
 future release has to be installed fresh.
+
+### Developer verification
+
+Play Protect's "hasn't seen an app from this developer before" block, and the mandatory
+registration Google is phasing in, are the same question: is this signing key tied to a
+verified developer? For a key that only ever appears on GitHub Releases, the answer is no,
+so the block stands however clean the app is. Two things change that, both keyed to the
+certificate `make-release-key.sh` created — one more reason it has to outlive every
+release:
+
+- **Register the app in the [Android Developer Console](https://developer.android.com/developer-verification)**
+  under the package name `com.firstresponder.kit` and that certificate. From
+  30 September 2026 this is enforced in the first regions, and wider through 2027: an
+  unregistered app no longer installs normally on a certified device, only through an
+  advanced flow the user has to seek out. The free limited-distribution tier caps at 20
+  authorized devices, which is a test group, not a download link — public releases need
+  the full verified account.
+- **Publish through Google Play**, including a closed or internal test track. Play scans
+  the binary and vouches for the developer, which is what actually retires the Play
+  Protect warning; verification comes with it. If this is ever done, upload *this*
+  keystore as the app signing key rather than letting Play generate one, otherwise the
+  Play build and the GitHub APK carry different signatures and neither installs over the
+  other.
+
+Neither is a code change, and there is no manifest flag, permission or build setting that
+substitutes for them. Telling users to switch Play Protect off is not the answer either —
+it is the only scanner most of them have.
 
 ## What it does
 
