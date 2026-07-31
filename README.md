@@ -12,10 +12,24 @@ Hebrew. Fully offline, no accounts, no ads, no analytics, no internet permission
 **[Download the latest APK](https://github.com/shavei/first-responder-kit/releases/latest/download/first-responder-kit.apk)**
 — or browse every build on the [releases page](https://github.com/shavei/first-responder-kit/releases/latest).
 
-Android 8.0 (API 26) or newer. It is a sideload, not a Play Store install, so open the file
-from your Downloads and allow your browser or file manager to "install unknown apps" when
-Android asks. The app requests no permissions beyond vibration and has no internet
+Android 8.0 (API 26) or newer. It is a sideload, not a Play Store install, so Android asks
+for confirmation twice on the way in. Both prompts are normal and neither means anything
+was found in the app — it requests no permissions beyond vibration and has no internet
 permission at all.
+
+### Installing it, prompt by prompt
+
+1. Tap the download link, then open the file from your browser's downloads or the Files app.
+2. **"…is not allowed to install unknown apps"** — tap **Settings** in that prompt, turn the
+   permission on for whichever app you opened the APK from, and come back. Android asks this
+   once per app, per device.
+3. **"App blocked to protect your device"** — tap **More details**, then **Install anyway**.
+   The collapsed dialog shows only **Got it**; the install button is behind *More details*,
+   which is easy to miss.
+4. If step 3 offers no **Install anyway** at all, Play Protect is set to block outright
+   rather than warn. Open **Play Store → your profile → Play Protect → ⚙ → Scan apps with
+   Play Protect**, turn it off, install, then **turn it back on**. It is the only scanner
+   most phones have, so leaving it off is not the trade to make.
 
 ### If Android refuses the install
 
@@ -63,23 +77,45 @@ so the block stands however clean the app is. Two things change that, both keyed
 certificate `make-release-key.sh` created — one more reason it has to outlive every
 release:
 
-- **Register the app in the [Android Developer Console](https://developer.android.com/developer-verification)**
-  under the package name `com.firstresponder.kit` and that certificate. From
-  30 September 2026 this is enforced in the first regions, and wider through 2027: an
-  unregistered app no longer installs normally on a certified device, only through an
-  advanced flow the user has to seek out. The free limited-distribution tier caps at 20
-  authorized devices, which is a test group, not a download link — public releases need
-  the full verified account.
+- **A limited distribution account on the [Android Developer Console](https://developer.android.com/developer-verification)**,
+  registering `com.firstresponder.kit` against that certificate. It is free, and it caps at
+  20 devices the installer explicitly authorises. For a kit carried by its author and a
+  couple of colleagues that cap is not a constraint, so this is the path this project
+  wants — a handful of devices is exactly the shape the tier was written for.
 - **Publish through Google Play**, including a closed or internal test track. Play scans
   the binary and vouches for the developer, which is what actually retires the Play
-  Protect warning; verification comes with it. If this is ever done, upload *this*
-  keystore as the app signing key rather than letting Play generate one, otherwise the
-  Play build and the GitHub APK carry different signatures and neither installs over the
-  other.
+  Protect warning; verification comes with it. This is what a public download link needs,
+  and it is more account than a two-person kit calls for. If it is ever done, upload
+  *this* keystore as the app signing key rather than letting Play generate one, otherwise
+  the Play build and the GitHub APK carry different signatures and neither installs over
+  the other.
 
-Neither is a code change, and there is no manifest flag, permission or build setting that
-substitutes for them. Telling users to switch Play Protect off is not the answer either —
-it is the only scanner most of them have.
+Registration is not urgent yet. Enforcement begins 30 September 2026 in Brazil, Indonesia,
+Singapore and Thailand only, expanding globally through 2027; on a device outside those
+regions an unregistered app still installs today, warning and all. What ends is the
+warning, not the ability to install.
+
+For your own devices there is also a route with no dialogs at all: `adb install
+first-responder-kit.apk` over USB, with developer options on. ADB is deliberately exempt —
+Google keeps it as the escape hatch for developers, and it stays exempt after verification
+is enforced. It needs a computer, so it suits the phones you own rather than anyone you
+send a link to.
+
+None of these is a code change, and there is no manifest flag, permission or build setting
+that substitutes for them. The app already declares one permission and no internet access,
+so there is nothing left to remove: it holds none of the permissions — `RECEIVE_SMS`,
+`READ_SMS`, `NOTIFICATION_LISTENER`, `ACCESSIBILITY` — that Google documents as what makes
+Play Protect block a sideload outright. The block here is about the key, not the build.
+
+Debug signing is not the way out either, though it looks like one. A debug-signed APK
+carries `CN=Android Debug, O=Android, C=US`, a placeholder shared by a vast number of
+builds, and sidesteps the unknown-developer check by having no developer identity to be
+unknown — which is why some sideloaded apps install with only a scan prompt. It costs the
+things this project needs: the debug keystore's password is public and its format is
+fixed, so anyone could sign an APK that Android accepts as an update to this one, and no
+verified account can ever be tied to a certificate the whole world shares. Telling users to
+switch Play Protect off is not the answer either — it is the only scanner most of them
+have.
 
 ## What it does
 
