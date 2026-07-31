@@ -123,7 +123,20 @@ jobs:
             echo "::error::APK is signed with the debug key — refusing to publish it."
             exit 1
           fi
-          FINGERPRINT="$(grep -m1 -i 'SHA-256 digest' signing.txt | cut -d: -f2- | tr -d ' ')"
+          # apksigner labels the line differently between versions — "Signer #1
+          # certificate SHA-256 digest:" on older ones, "V3.0 Signer: certificate
+          # SHA-256 digest:" on 35.0.0 — so cut everything up to the last colon
+          # rather than counting fields. Naming the certificate digest explicitly
+          # also keeps the public key's digest, printed a few lines below it,
+          # from being picked up if the order ever changes. The bare hex is then
+          # colon-grouped and upper-cased to read the same as `keytool -printcert`
+          # and as the certificate Android itself shows.
+          FINGERPRINT="$(
+            grep -m1 -i 'certificate SHA-256 digest' signing.txt |
+              sed 's/.*digest: *//' |
+              tr -d ' ' | tr 'a-f' 'A-F' | sed 's/../&:/g; s/:$//'
+          )"
+          [ -n "$FINGERPRINT" ] || { echo "::error::Could not read the certificate digest."; exit 1; }
           SHA256="$(sha256sum dist/first-responder-kit.apk | cut -d' ' -f1)"
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
