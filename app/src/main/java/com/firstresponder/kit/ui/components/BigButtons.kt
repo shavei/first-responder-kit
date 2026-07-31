@@ -2,6 +2,7 @@ package com.firstresponder.kit.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -113,7 +114,8 @@ fun BigOutlinedButton(
 /**
  * A row of mutually exclusive options (theme, patient type, …).
  *
- * Generic so every "pick one of N" setting looks and behaves the same.
+ * Generic so every "pick one of N" setting looks and behaves the same. [emoji] is optional
+ * and sits above the label on its own line.
  */
 @Composable
 fun <T> SingleChoiceRow(
@@ -123,6 +125,7 @@ fun <T> SingleChoiceRow(
     label: @Composable (T) -> String,
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
+    emoji: ((T) -> String)? = null,
 ) {
     val unselectedBorder = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     Row(
@@ -144,12 +147,28 @@ fun <T> SingleChoiceRow(
                     ButtonDefaults.outlinedButtonColors()
                 },
                 border = if (isSelected) null else unselectedBorder,
+                // Tighter than the button default: four options share the screen width and
+                // every dp of it belongs to the label.
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp),
             ) {
-                Text(
-                    text = label(option),
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    if (emoji != null) {
+                        Text(
+                            text = emoji(option),
+                            fontSize = 22.sp,
+                            lineHeight = 26.sp,
+                            // Decoration only — the label already names the option.
+                            modifier = Modifier.clearAndSetSemantics { },
+                        )
+                    }
+                    FitOnOneLineText(
+                        text = label(option),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
             }
         }
     }

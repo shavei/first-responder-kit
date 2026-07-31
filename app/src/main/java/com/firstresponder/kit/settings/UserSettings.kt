@@ -19,6 +19,7 @@ data class UserSettings(
     val defaultBpm: Int = Bpm.DEFAULT,
     val defaultPatientType: PatientType = PatientType.ADULT,
     val themeMode: ThemeMode = ThemeMode.DARK,
+    val language: AppLanguage = AppLanguage.SYSTEM,
 )
 
 /** How the app picks between the light and dark colour schemes. */

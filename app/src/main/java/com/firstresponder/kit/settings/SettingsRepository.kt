@@ -29,4 +29,6 @@ interface SettingsRepository {
     suspend fun setDefaultPatientType(patientType: PatientType)
 
     suspend fun setThemeMode(themeMode: ThemeMode)
+
+    suspend fun setLanguage(language: AppLanguage)
 }

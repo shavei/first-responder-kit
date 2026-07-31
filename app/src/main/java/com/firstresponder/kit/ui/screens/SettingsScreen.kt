@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.firstresponder.kit.R
 import com.firstresponder.kit.domain.PatientType
+import com.firstresponder.kit.settings.AppLanguage
 import com.firstresponder.kit.settings.ThemeMode
 import com.firstresponder.kit.ui.components.BpmStepper
 import com.firstresponder.kit.ui.components.ScreenHeader
@@ -50,6 +51,7 @@ fun SettingsRoute(
         onAdjustDefaultBpm = viewModel::adjustDefaultBpm,
         onDefaultPatientTypeChange = viewModel::setDefaultPatientType,
         onThemeModeChange = viewModel::setThemeMode,
+        onLanguageChange = viewModel::setLanguage,
         modifier = modifier,
     )
 }
@@ -69,6 +71,7 @@ fun SettingsScreen(
     onAdjustDefaultBpm: (Int) -> Unit,
     onDefaultPatientTypeChange: (PatientType) -> Unit,
     onThemeModeChange: (ThemeMode) -> Unit,
+    onLanguageChange: (AppLanguage) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val settings = state.settings
@@ -132,6 +135,14 @@ fun SettingsScreen(
                     onSelect = onThemeModeChange,
                 )
             }
+            SettingBlock(title = stringResource(R.string.settings_language)) {
+                SingleChoiceRow(
+                    options = AppLanguage.entries,
+                    selected = settings.language,
+                    label = { language -> stringResource(language.labelRes()) },
+                    onSelect = onLanguageChange,
+                )
+            }
 
             HorizontalDivider()
 
@@ -145,7 +156,8 @@ fun SettingsScreen(
                     selected = settings.defaultPatientType,
                     // Stacked rather than side by side: with four patient types there is
                     // not enough width for the emoji and the name to share a line.
-                    label = { type -> "${type.emoji}\n${stringResource(type.labelRes)}" },
+                    emoji = { type -> type.emoji },
+                    label = { type -> stringResource(type.labelRes) },
                     onSelect = onDefaultPatientTypeChange,
                 )
             }
@@ -158,6 +170,13 @@ fun SettingsScreen(
             )
         }
     }
+}
+
+/** Label for each language option. Kept next to the screen that renders them. */
+private fun AppLanguage.labelRes(): Int = when (this) {
+    AppLanguage.SYSTEM -> R.string.language_system
+    AppLanguage.ENGLISH -> R.string.language_english
+    AppLanguage.HEBREW -> R.string.language_hebrew
 }
 
 /** Label for each theme option. Kept next to the screen that renders them. */
@@ -182,6 +201,7 @@ private fun SettingsScreenPreview() {
                 onAdjustDefaultBpm = {},
                 onDefaultPatientTypeChange = {},
                 onThemeModeChange = {},
+                onLanguageChange = {},
             )
         }
     }

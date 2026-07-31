@@ -13,6 +13,7 @@ import androidx.navigation.navArgument
 import com.firstresponder.kit.domain.PatientType
 import com.firstresponder.kit.ui.screens.HomeScreen
 import com.firstresponder.kit.ui.screens.MetronomeRoute
+import com.firstresponder.kit.ui.screens.OxygenRoute
 import com.firstresponder.kit.ui.screens.SettingsRoute
 
 /**
@@ -43,6 +44,7 @@ fun KitNavHost(
                     navController.navigate(Destinations.metronome(patientType))
                 },
                 onOpenSettings = { navController.navigate(Destinations.SETTINGS) },
+                onToolSelected = { tool -> navController.navigate(tool.route) },
                 defaultPatientType = defaultPatientType,
             )
         }
@@ -55,6 +57,10 @@ fun KitNavHost(
         ) {
             // The patient type reaches the view model through its SavedStateHandle.
             MetronomeRoute(onBack = navController::popBackStack)
+        }
+
+        composable(Destinations.OXYGEN) {
+            OxygenRoute(onBack = navController::popBackStack)
         }
 
         composable(Destinations.SETTINGS) {

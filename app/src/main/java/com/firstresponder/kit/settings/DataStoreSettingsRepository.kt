@@ -61,6 +61,9 @@ class DataStoreSettingsRepository(
     override suspend fun setThemeMode(themeMode: ThemeMode) =
         edit { it[Keys.THEME_MODE] = themeMode.name }
 
+    override suspend fun setLanguage(language: AppLanguage) =
+        edit { it[Keys.LANGUAGE] = language.storageName }
+
     private suspend fun edit(block: (MutablePreferences) -> Unit) {
         dataStore.edit(block)
     }
@@ -77,6 +80,7 @@ class DataStoreSettingsRepository(
             defaultBpm = Bpm.clamp(this[Keys.DEFAULT_BPM] ?: defaults.defaultBpm),
             defaultPatientType = PatientType.fromStorageName(this[Keys.DEFAULT_PATIENT_TYPE]),
             themeMode = ThemeMode.fromStorageName(this[Keys.THEME_MODE]),
+            language = AppLanguage.fromStorageName(this[Keys.LANGUAGE]),
         )
     }
 
@@ -88,5 +92,6 @@ class DataStoreSettingsRepository(
         val DEFAULT_BPM = intPreferencesKey("default_bpm")
         val DEFAULT_PATIENT_TYPE = stringPreferencesKey("default_patient_type")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val LANGUAGE = stringPreferencesKey("language")
     }
 }

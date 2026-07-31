@@ -1,7 +1,8 @@
-# First Responder Kit — CPR Metronome
+# First Responder Kit
 
-A native Android app that beats out a steady compression rate for CPR training and
-practice. Fully offline, no accounts, no ads, no analytics, no internet permission.
+A native Android app for BLS practice: a metronome that beats out a steady compression
+rate, and an oxygen reference that works out how long the cylinder lasts. In English and
+Hebrew. Fully offline, no accounts, no ads, no analytics, no internet permission.
 
 > Personal training aid. Not a medical device, and not a substitute for clinical judgement,
 > local protocols or hands-on training.
@@ -30,8 +31,9 @@ you uninstall it first. Set those secrets to sign with a real key and updates wo
 
 ## What it does
 
-- **Home screen** — four full-size buttons (🍼 Newborn · 👶 Infant · 🧒 Child · 🧑 Adult)
-  plus Settings. The patient type set as the default in Settings is accented.
+- **Home screen** — four full-size buttons (🍼 Newborn · 👶 Infant · 🧒 Child · 🧑 Adult),
+  the other tools in the kit, and Settings. The patient type set as the default in Settings
+  is accented.
 - **Metronome screen** — large BPM readout inside a circle that pulses on every beat, the
   compression depth, hand technique and compressions-to-breaths ratio for that patient,
   a −/+ rate control, and one big Start/Stop button.
@@ -44,8 +46,15 @@ you uninstall it first. Set those secrets to sign with a real key and updates wo
   vibration toggle only while that toggle is on. Releasing it fires one beat at the chosen
   strength, so it can be set by feel. Full strength by default, where the phone rattles hard
   enough to hear.
+- **Oxygen** — what each device delivers (mask or bag-valve mask, with or without a
+  reservoir bag, at 10–15 L/min), a calculator for how long a cylinder has left —
+  pressure × cylinder volume ÷ flow, over the 20 L and 2.4 L cylinders — and the handling
+  rules that go with a cylinder of oxygen.
+- **Language** — English or Hebrew, switchable in Settings and applied on the spot, with
+  the layout mirrored for Hebrew. Following the device's own language is the default.
 - **Settings** — sound, vibration, vibration strength, keep-screen-awake, default BPM,
-  default patient type and theme (system / light / dark). Stored locally with DataStore.
+  default patient type, theme (system / light / dark) and language. Stored locally with
+  DataStore.
 
 ## How the timing works
 
@@ -137,15 +146,22 @@ app/src/main/java/com/firstresponder/kit/
 │  ├─ ClickPlayer.kt         playback interface
 │  ├─ AudioTrackClickPlayer.kt   low-latency AudioTrack implementation
 │  └─ MetronomeEngine.kt     drift-free beat scheduler
-├─ domain/PatientType.kt     newborn / infant / child / adult, with their BLS values
+├─ domain/
+│  ├─ PatientType.kt         newborn / infant / child / adult, with their BLS values
+│  └─ Oxygen.kt              delivery devices and cylinder sizes
 ├─ settings/                 UserSettings, repository interface, DataStore implementation
-├─ util/                     BPM math, haptics, keep-screen-on effect
+├─ util/                     BPM math, oxygen duration, haptics, keep-screen-on effect
 ├─ viewmodel/                MetronomeViewModel, SettingsViewModel
 └─ ui/
-   ├─ components/            big buttons, pulse circle, BPM stepper, setting rows
+   ├─ AppLocale.kt           applies the chosen language to the whole tree
+   ├─ components/            big buttons, pulse circle, steppers, setting rows
    ├─ navigation/            routes, tool registry, NavHost
-   ├─ screens/               Home, Metronome, Settings
+   ├─ screens/               Home, Metronome, Oxygen, Settings
    └─ theme/                 colours, typography, theme
+
+app/src/main/res/
+├─ values/strings.xml        English (the default)
+└─ values-iw/strings.xml     Hebrew — `iw`, the code Android reports Hebrew locales under
 ```
 
 Architecture is MVVM: the view models own state and talk to the engine and the settings
@@ -249,7 +265,11 @@ calculator, trauma reference cards, timers…). To add one:
    `viewmodel/` with a `Factory` that pulls its dependencies from `AppContainer`.
 
 The home screen renders registered tools automatically under the CPR buttons. Nothing else
-has to change.
+has to change — the oxygen tool is exactly those three steps, and is worth reading as the
+worked example.
+
+Anything with user-visible text needs both `values/strings.xml` and `values-iw/strings.xml`
+— lint reports any string that has only one of them.
 
 ## Tech
 

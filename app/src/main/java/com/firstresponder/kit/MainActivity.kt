@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.firstresponder.kit.settings.UserSettings
+import com.firstresponder.kit.ui.ProvideAppLanguage
 import com.firstresponder.kit.ui.navigation.KitNavHost
 import com.firstresponder.kit.ui.theme.FirstResponderKitTheme
 
@@ -42,12 +43,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             val settings by settingsFlow.collectAsStateWithLifecycle(initialValue = UserSettings())
 
-            FirstResponderKitTheme(themeMode = settings.themeMode) {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    KitNavHost(
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
-                        defaultPatientType = settings.defaultPatientType,
-                    )
+            ProvideAppLanguage(language = settings.language) {
+                FirstResponderKitTheme(themeMode = settings.themeMode) {
+                    Surface(modifier = Modifier.fillMaxSize()) {
+                        KitNavHost(
+                            modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
+                            defaultPatientType = settings.defaultPatientType,
+                        )
+                    }
                 }
             }
         }

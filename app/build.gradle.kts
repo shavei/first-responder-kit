@@ -90,6 +90,15 @@ android {
         }
     }
 
+    bundle {
+        language {
+            // The language is picked inside the app, not taken from the system locale, so
+            // splitting translations out per-locale would leave a device set to English
+            // with no Hebrew strings to switch to.
+            enableSplit = false
+        }
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"

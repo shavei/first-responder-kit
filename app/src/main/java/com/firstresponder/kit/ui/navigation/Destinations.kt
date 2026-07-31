@@ -2,6 +2,7 @@ package com.firstresponder.kit.ui.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.firstresponder.kit.R
@@ -13,6 +14,7 @@ object Destinations {
 
     const val HOME = "home"
     const val SETTINGS = "settings"
+    const val OXYGEN = "oxygen"
 
     /** Navigation argument carrying [PatientType.storageName]. */
     const val ARG_PATIENT_TYPE = MetronomeViewModel.ARG_PATIENT_TYPE
@@ -57,6 +59,13 @@ object ToolRegistry {
         route = Destinations.METRONOME_ROUTE,
     )
 
-    /** Additional tools, rendered as a list under the CPR buttons. Empty for now. */
-    val tools: List<KitTool> = emptyList()
+    val oxygen = KitTool(
+        id = "oxygen",
+        titleRes = R.string.oxygen,
+        icon = Icons.Filled.Air,
+        route = Destinations.OXYGEN,
+    )
+
+    /** Additional tools, rendered as a list under the CPR buttons. */
+    val tools: List<KitTool> = listOf(oxygen)
 }
