@@ -6,10 +6,13 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// Optional release signing. Create a `keystore.properties` file in the project root
-// (it is git-ignored) with storeFile / storePassword / keyAlias / keyPassword to sign
-// release builds with your own key. Without it, release builds fall back to the debug
-// key so `assembleRelease` still produces an installable APK for personal use.
+// Release signing. Create a `keystore.properties` file in the project root (it is
+// git-ignored) with storeFile / storePassword / keyAlias / keyPassword — `./tools/
+// make-release-key.sh` generates the key and prints the file to write. Without it,
+// release builds fall back to the debug key: fine for a build you install on your
+// own device now, but not for one you hand to anyone, because the debug key is
+// generated per machine and Android will not install an APK over one signed with a
+// different key. The release workflow therefore refuses to publish such a build.
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) {
@@ -45,6 +48,13 @@ android {
                 storePassword = keystoreProperties.getProperty("storePassword")
                 keyAlias = keystoreProperties.getProperty("keyAlias")
                 keyPassword = keystoreProperties.getProperty("keyPassword")
+
+                // v2 is what minSdk 26 needs; v3 additionally records the signing
+                // identity in a form that supports rotating to a new key later
+                // without every install breaking. v1 is dead weight below API 24.
+                enableV1Signing = false
+                enableV2Signing = true
+                enableV3Signing = true
             }
         }
     }
