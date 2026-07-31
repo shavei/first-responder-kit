@@ -149,15 +149,23 @@ jobs:
           SHA256: ${{ steps.signing.outputs.sha256 }}
         run: |
           cat > notes.md <<EOF
-          Android 8.0 (API 26) or newer. Open the downloaded file and allow your browser
-          or file manager to install unknown apps when Android asks — this is a sideload,
-          not a Play Store install, so the phone will want that permission once.
+          Android 8.0 (API 26) or newer. This is a sideload, not a Play Store install, so
+          Android asks for confirmation twice. Neither prompt means anything was found in
+          the app.
 
-          If Play Protect says **"App blocked to protect your device"** because it "hasn't
-          seen an app from this developer before", tap **More details** → **Install
-          anyway**. It is judging the signing key's reputation, which a sideloaded app has
-          no way to build, not anything found in the app. The two hashes below identify
-          this exact build if you want to check it first.
+          1. Open the downloaded file. At **"…is not allowed to install unknown apps"**,
+             tap **Settings**, allow it for whichever app you opened the file from, and
+             come back. Android asks this once per app, per device.
+          2. At **"App blocked to protect your device"**, tap **More details** →
+             **Install anyway**. The dialog shows only **Got it** until you expand it, so
+             the install button is easy to miss. Play Protect is judging the signing key's
+             reputation here — which a sideloaded app has no way to build — not the build
+             itself.
+          3. If there is no **Install anyway**, Play Protect is set to block rather than
+             warn. **Play Store → profile → Play Protect → ⚙ → Scan apps with Play
+             Protect** off, install, then **back on**.
+
+          The two hashes below identify this exact build if you want to check it first.
 
           If you have a build from **v1.6.0 or earlier** installed, uninstall it first.
           Those were signed with a throwaway key that changed on every build, which is

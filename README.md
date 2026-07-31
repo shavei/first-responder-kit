@@ -12,10 +12,24 @@ Hebrew. Fully offline, no accounts, no ads, no analytics, no internet permission
 **[Download the latest APK](https://github.com/shavei/first-responder-kit/releases/latest/download/first-responder-kit.apk)**
 — or browse every build on the [releases page](https://github.com/shavei/first-responder-kit/releases/latest).
 
-Android 8.0 (API 26) or newer. It is a sideload, not a Play Store install, so open the file
-from your Downloads and allow your browser or file manager to "install unknown apps" when
-Android asks. The app requests no permissions beyond vibration and has no internet
+Android 8.0 (API 26) or newer. It is a sideload, not a Play Store install, so Android asks
+for confirmation twice on the way in. Both prompts are normal and neither means anything
+was found in the app — it requests no permissions beyond vibration and has no internet
 permission at all.
+
+### Installing it, prompt by prompt
+
+1. Tap the download link, then open the file from your browser's downloads or the Files app.
+2. **"…is not allowed to install unknown apps"** — tap **Settings** in that prompt, turn the
+   permission on for whichever app you opened the APK from, and come back. Android asks this
+   once per app, per device.
+3. **"App blocked to protect your device"** — tap **More details**, then **Install anyway**.
+   The collapsed dialog shows only **Got it**; the install button is behind *More details*,
+   which is easy to miss.
+4. If step 3 offers no **Install anyway** at all, Play Protect is set to block outright
+   rather than warn. Open **Play Store → your profile → Play Protect → ⚙ → Scan apps with
+   Play Protect**, turn it off, install, then **turn it back on**. It is the only scanner
+   most phones have, so leaving it off is not the trade to make.
 
 ### If Android refuses the install
 
