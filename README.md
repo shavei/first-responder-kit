@@ -17,17 +17,38 @@ from your Downloads and allow your browser or file manager to "install unknown a
 Android asks. The app requests no permissions beyond vibration and has no internet
 permission at all.
 
+### If Android refuses the install
+
+- **"For your security, your phone is not allowed to install unknown apps from this
+  source."** The ordinary sideload prompt, not an error. Tap the link in it, turn the
+  permission on for whichever app you opened the APK from — the browser that downloaded
+  it, or your file manager — and go back. Android asks this once per app, per device.
+- **"App not installed", or an installer complaining that the signature does not match.**
+  The build you have was signed with a different key from the one you are installing.
+  Uninstall the app and install again; nothing in it is stored outside the app, so only
+  the settings are lost. Releases up to **v1.6.0** each carried a different throwaway key,
+  so this hit every upgrade between them — from v1.6.1 on the key is stable and upgrades
+  install straight over the top.
+- **"Unsafe app blocked", or a Play Protect warning.** Play Protect flags any app it has
+  not seen distributed at scale, which covers everything sideloaded. Every release lists
+  the APK's SHA-256 and its signing certificate's SHA-256; check the download against them
+  if you want to be sure it is the file this repository's workflow built.
+
 Releases are built by [`.github/workflows/release.yml`](.github/workflows/release.yml) —
-push a tag and the workflow builds, tests and attaches the APK:
+push a tag and the workflow builds, tests, verifies the signature and attaches the APK:
 
 ```bash
 git tag v1.0.0 && git push origin v1.0.0
 ```
 
-Unless the `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` and `KEY_PASSWORD`
-repository secrets are set, the APK is signed with the debug key. It installs fine, but the
-signature is not stable between builds, so upgrading over a previous install will fail until
-you uninstall it first. Set those secrets to sign with a real key and updates work normally.
+The workflow needs the `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` and
+`KEY_PASSWORD` repository secrets, and fails without them rather than publishing an APK
+signed with the runner's debug key. That key is generated fresh on each runner, so such a
+build cannot be installed over any other. Run
+[`./tools/make-release-key.sh`](tools/make-release-key.sh) once: it creates the keystore
+and prints the four values to paste under **Settings → Secrets and variables → Actions**.
+Back the keystore up — Android identifies the app by that key, and losing it means every
+future release has to be installed fresh.
 
 ## What it does
 
@@ -123,16 +144,32 @@ sdk.dir=/path/to/Android/sdk
 
 ### Signing a release build
 
-Release builds are minified and shrunk with R8. Without a keystore they are signed with
-the debug key, which is enough to sideload for personal use. To sign with your own key,
-create `keystore.properties` in the project root (it is git-ignored):
+Release builds are minified and shrunk with R8. Without a keystore they fall back to the
+debug key, which is enough to put a build on your own device but not to give to anyone:
+that key is per-machine, and Android will not install an APK over one signed with a
+different key. Generate a real key once —
+
+```bash
+./tools/make-release-key.sh
+```
+
+— and write the `keystore.properties` it prints into the project root (git-ignored):
 
 ```properties
-storeFile=../release.jks
+storeFile=release.jks
 storePassword=…
 keyAlias=…
 keyPassword=…
 ```
+
+Check what a built APK is actually signed with:
+
+```bash
+$ANDROID_HOME/build-tools/35.0.0/apksigner verify --print-certs \
+  app/build/outputs/apk/release/app-release.apk
+```
+
+`CN=Android Debug` in that output means the keystore was not picked up.
 
 ## Project layout
 
