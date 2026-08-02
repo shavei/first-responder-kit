@@ -12,7 +12,6 @@ import android.widget.RemoteViews
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import com.firstresponder.kit.R
-import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -40,8 +39,8 @@ object WidgetRenderer {
     /** Beyond this a glyph is bigger than any sane widget; the cap bounds the update size. */
     private const val MAX_ICON_PX = 256
 
-    /** The background is a flat rounded rectangle, so it stretches without much loss. */
-    private const val MAX_BACKGROUND_PX = 160
+    /** The background is one flat shape, so it survives being scaled up a little. */
+    private const val MAX_BACKGROUND_PX = 192
 
     /** What to assume when the host has not told us how big the widget is yet. */
     private const val FALLBACK_SIZE_DP = 60f
@@ -60,6 +59,9 @@ object WidgetRenderer {
         val tile = config.sanitized()
         val width = widthDp.takeIf { it > 0f } ?: FALLBACK_SIZE_DP
         val height = heightDp.takeIf { it > 0f } ?: FALLBACK_SIZE_DP
+        // Everything is laid out for the square the tile actually is, not for the cell it
+        // sits in, so the glyph and the caption stay inside the background.
+        val side = WidgetBackgrounds.sideDp(width, height)
 
         val iconRes = tile.icon.resolve(tile.action)
         val value = valueText(tile, defaultBpm)
@@ -70,8 +72,8 @@ object WidgetRenderer {
         }
 
         val layout = WidgetLayouts.forSize(
-            widthDp = width,
-            heightDp = height,
+            widthDp = side,
+            heightDp = side,
             hasIcon = iconRes != null,
             value = value,
             label = label,
@@ -81,7 +83,7 @@ object WidgetRenderer {
             ?: WidgetColors.autoForeground(tile.background, tile.backgroundOpacity)
 
         val views = RemoteViews(context.packageName, R.layout.widget_kit)
-        views.drawBackground(context, tile, width, height)
+        views.drawBackground(context, tile, side)
         val padding = layout.paddingDp.dp(context)
         views.setViewPadding(R.id.widget_content, padding, padding, padding, padding)
         views.drawIcon(context, iconRes, layout, foreground)
@@ -128,8 +130,7 @@ object WidgetRenderer {
     private fun RemoteViews.drawBackground(
         context: Context,
         config: WidgetConfig,
-        widthDp: Float,
-        heightDp: Float,
+        sideDp: Float,
     ) {
         if (config.backgroundOpacity == 0) {
             // Fully transparent: no bitmap to send at all, just the wallpaper showing through.
@@ -141,8 +142,7 @@ object WidgetRenderer {
             R.id.widget_background,
             backgroundBitmap(
                 context = context,
-                widthDp = widthDp,
-                heightDp = heightDp,
+                sideDp = sideDp,
                 color = WidgetColors.withOpacity(config.background.argb, config.backgroundOpacity),
                 cornerPercent = config.cornerPercent,
             ),
@@ -190,31 +190,29 @@ object WidgetRenderer {
     }
 
     /**
-     * The background, drawn into a bitmap the shape of the whole tile.
+     * The tile: a square, rounded by as much as the user asked for.
      *
-     * The bitmap always matches the tile's aspect ratio — it is stretched to fill by the
-     * image view, and a bitmap of any other shape would come out distorted. What changes
-     * with the rounding is the shape painted *inside* it, which is how a fully round tile
-     * can be a centred circle rather than a stretched one. See [WidgetBackgrounds].
+     * Drawn square and scaled by the image view with the aspect ratio kept, which is what
+     * makes the shape independent of how big the launcher happens to have made the widget.
+     * A background stretched to fill the cell would be at the mercy of the size the host
+     * reports, and hosts report the range a widget may be resized to rather than the size
+     * it is — which is how a rounded corner ends up flattened almost square.
      */
     private fun backgroundBitmap(
         context: Context,
-        widthDp: Float,
-        heightDp: Float,
+        sideDp: Float,
         color: Int,
         cornerPercent: Int,
     ): Bitmap {
         val density = context.resources.displayMetrics.density
-        val scale = min(1f, MAX_BACKGROUND_PX / (max(widthDp, heightDp) * density))
-        val width = (widthDp * density * scale).roundToInt().coerceAtLeast(1)
-        val height = (heightDp * density * scale).roundToInt().coerceAtLeast(1)
+        val side = min((sideDp * density).roundToInt(), MAX_BACKGROUND_PX).coerceAtLeast(1)
 
-        val shape = WidgetBackgrounds.shapeFor(width.toFloat(), height.toFloat(), cornerPercent)
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val bitmap = Bitmap.createBitmap(side, side, Bitmap.Config.ARGB_8888)
+        val radius = WidgetBackgrounds.radiusFor(side.toFloat(), cornerPercent)
         Canvas(bitmap).drawRoundRect(
-            RectF(shape.left, shape.top, shape.right, shape.bottom),
-            shape.radius,
-            shape.radius,
+            RectF(0f, 0f, side.toFloat(), side.toFloat()),
+            radius,
+            radius,
             Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color },
         )
         return bitmap

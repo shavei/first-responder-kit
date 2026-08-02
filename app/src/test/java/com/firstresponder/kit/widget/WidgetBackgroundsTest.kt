@@ -4,57 +4,33 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * The shape of a tile, and the difference between round corners and a round tile.
- *
- * A launcher cell is rarely square, which is where these two part company.
- */
+/** The shape of a tile: always square, rounded by as much as was asked for. */
 class WidgetBackgroundsTest {
 
     @Test
-    fun `no rounding fills the tile with square corners`() {
-        val shape = WidgetBackgrounds.shapeFor(100f, 140f, cornerPercent = 0)
-
-        assertEquals(0f, shape.left, 0.01f)
-        assertEquals(0f, shape.top, 0.01f)
-        assertEquals(100f, shape.width, 0.01f)
-        assertEquals(140f, shape.height, 0.01f)
-        assertEquals(0f, shape.radius, 0.01f)
+    fun `the tile is a square, whatever shape the cell is`() {
+        assertEquals(100f, WidgetBackgrounds.sideDp(100f, 140f), 0.01f)
+        assertEquals(80f, WidgetBackgrounds.sideDp(300f, 80f), 0.01f)
+        assertEquals(120f, WidgetBackgrounds.sideDp(120f, 120f), 0.01f)
     }
 
     @Test
-    fun `partial rounding fills the tile and rounds against the shorter side`() {
-        val shape = WidgetBackgrounds.shapeFor(100f, 140f, cornerPercent = 20)
-
-        assertEquals(100f, shape.width, 0.01f)
-        assertEquals(140f, shape.height, 0.01f)
-        assertEquals(20f, shape.radius, 0.01f)
+    fun `no rounding is a square and full rounding is a circle`() {
+        assertEquals(0f, WidgetBackgrounds.radiusFor(100f, 0), 0.01f)
+        // Half the side: every point on the edge is one radius from the middle of it.
+        assertEquals(50f, WidgetBackgrounds.radiusFor(100f, WidgetBackgrounds.FULLY_ROUND_PERCENT), 0.01f)
     }
 
     @Test
-    fun `fully round is a circle, not a lozenge, on a tile that is not square`() {
-        val shape = WidgetBackgrounds.shapeFor(100f, 140f, WidgetBackgrounds.FULLY_ROUND_PERCENT)
-
-        assertEquals("a circle is as tall as it is wide", shape.width, shape.height, 0.01f)
-        assertEquals(100f, shape.width, 0.01f)
-        assertEquals(shape.width / 2, shape.radius, 0.01f)
+    fun `rounding in between is proportional to the side`() {
+        assertEquals(20f, WidgetBackgrounds.radiusFor(100f, 20), 0.01f)
+        assertEquals(40f, WidgetBackgrounds.radiusFor(200f, 20), 0.01f)
     }
 
     @Test
-    fun `the circle sits in the middle of the space it did not fill`() {
-        val shape = WidgetBackgrounds.shapeFor(100f, 140f, WidgetBackgrounds.FULLY_ROUND_PERCENT)
-
-        assertEquals(shape.top, 140f - shape.bottom, 0.01f)
-        assertEquals(shape.left, 100f - shape.right, 0.01f)
-    }
-
-    @Test
-    fun `a square tile fully rounded is the same circle either way`() {
-        val shape = WidgetBackgrounds.shapeFor(120f, 120f, WidgetBackgrounds.FULLY_ROUND_PERCENT)
-
-        assertEquals(0f, shape.left, 0.01f)
-        assertEquals(120f, shape.width, 0.01f)
-        assertEquals(60f, shape.radius, 0.01f)
+    fun `a radius from outside the range cannot turn the tile inside out`() {
+        assertEquals(0f, WidgetBackgrounds.radiusFor(100f, -30), 0.01f)
+        assertEquals(50f, WidgetBackgrounds.radiusFor(100f, 9_000), 0.01f)
     }
 
     @Test

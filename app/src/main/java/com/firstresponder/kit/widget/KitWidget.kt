@@ -5,7 +5,9 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
+import android.util.SizeF
 import com.firstresponder.kit.settings.AppLanguage
 import com.firstresponder.kit.settings.UserSettings
 
@@ -118,13 +120,43 @@ class KitWidget : AppWidgetProvider() {
         /**
          * How much room a widget has, in density-independent pixels.
          *
-         * The host reports a range rather than a size: the minimum is the width in the
-         * orientation the widget is *widest* in, the maximum the height in the one it is
-         * tallest in. Which of the two applies is a matter of which way up the launcher is.
+         * This has to be the size the widget is actually laid out at, not merely close to
+         * it: the background is a bitmap stretched to fill the tile, so a size of the wrong
+         * *shape* is stretched unevenly and every corner it rounded comes out as an ellipse
+         * — a circle squashed into an oval, a rounded corner flattened towards square.
+         *
+         * From API 31 the host reports the exact sizes and there is nothing to guess at.
+         * Before that all it offers is a range — the minimum width is the width in the
+         * orientation the widget is widest in, the maximum height the height in the one it
+         * is tallest in — and the pair for the current orientation is the best estimate
+         * available.
          */
         fun sizeDp(context: Context, options: Bundle): Pair<Float, Float> {
             val landscape =
                 context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+            return exactSizeDp(options, landscape) ?: estimatedSizeDp(options, landscape)
+        }
+
+        /** The size the host laid the widget out at, on the versions that report it. */
+        private fun exactSizeDp(options: Bundle, landscape: Boolean): Pair<Float, Float>? {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+            @Suppress("DEPRECATION")
+            val sizes = options
+                .getParcelableArrayList<SizeF>(AppWidgetManager.OPTION_APPWIDGET_SIZES)
+                ?.filter { it.width > 0f && it.height > 0f }
+                ?: return null
+            if (sizes.isEmpty()) return null
+            // The list holds one entry per orientation the host may show the widget in; the
+            // wider of them is the landscape one.
+            val size = if (landscape) {
+                sizes.maxByOrNull { it.width }
+            } else {
+                sizes.minByOrNull { it.width }
+            } ?: return null
+            return size.width to size.height
+        }
+
+        private fun estimatedSizeDp(options: Bundle, landscape: Boolean): Pair<Float, Float> {
             val width = if (landscape) {
                 options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)
             } else {
