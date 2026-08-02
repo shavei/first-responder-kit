@@ -53,8 +53,13 @@ object WidgetLayouts {
     private const val MIN_VALUE_DP = 9f
     private const val MIN_LABEL_DP = 7f
 
-    /** The glyphs are 96 dp drawables; scaling one up past that would only blur it. */
-    private const val MAX_ICON_DP = 96f
+    /**
+     * A bound on the glyph rather than a limit of it: the glyphs are vectors, rasterised to
+     * whatever size they are drawn at, so there is no resolution past which one blurs. This
+     * only stops a widget stretched across a whole screen from becoming a single enormous
+     * heart.
+     */
+    private const val MAX_ICON_DP = 240f
 
     /**
      * Text has no such ceiling of its own — a rate on a widget stretched across the screen

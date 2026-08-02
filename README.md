@@ -412,10 +412,18 @@ Three things are worth knowing about the implementation, all in `widget/`:
   locale. This app picks its language itself, so the provider renders through a context
   localised to the language the app was last in, mirrored into the widget's own store
   alongside the default rate.
-- **Colours, sizes and rounding are baked into two small bitmaps** — the background and the
-  tinted glyph — because the set of `RemoteViews` calls that behaves identically from API
-  26 to today is narrow, and "configurable" has to mean it works everywhere rather than
-  only on the newest phones.
+- **Colours, sizes and rounding are baked into bitmaps** — the background and, on older
+  versions, the tinted glyph — because the set of `RemoteViews` calls that behaves
+  identically from API 26 to today is narrow, and "configurable" has to mean it works
+  everywhere rather than only on the newest phones.
+- **It is drawn as well as the phone allows.** Bitmaps are rendered at twice the size they
+  will be shown at and scaled back down, which samples each final pixel four times over and
+  is what makes an edge look smooth rather than merely anti-aliased; the ceiling is the
+  display's own resolution, since nothing on a home screen is wider than the screen and the
+  bitmap budget a host allows an app is proportional to it. A phone the platform reports as
+  low on memory gets the plain resolution instead. From API 31 the glyph is not rasterised
+  here at all: the vector is sent, with the size to draw it at, and the host rasterises it
+  exactly — sharper at every size, for no bitmap at all.
 
 ## Startup
 

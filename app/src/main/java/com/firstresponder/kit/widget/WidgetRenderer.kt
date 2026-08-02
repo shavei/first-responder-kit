@@ -1,11 +1,13 @@
 package com.firstresponder.kit.widget
 
+import android.app.ActivityManager
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
+import android.os.Build
 import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
@@ -22,9 +24,10 @@ import kotlin.math.roundToInt
  * the three elements are visible, how big they are ([WidgetLayouts]), and what colour they
  * are. That is deliberate — a `RemoteViews` can only do what the host process is willing to
  * do on its behalf, and the set of calls that work identically from API 26 to today is
- * small. Sizes and colours that cannot be set through it are baked into two small bitmaps
- * instead: the rounded background, and the tinted glyph. Both are capped well under the
- * size at which the update would stop fitting through Binder.
+ * small. Sizes and colours that cannot be set through it are baked into two bitmaps
+ * instead: the square background, and the tinted glyph. Both are drawn at the resolution
+ * the phone in hand can show and then some — see [OVERSAMPLE] — and bounded so a single
+ * update cannot run away with the host's bitmap budget.
  *
  * The widget is rendered for the size it is now and re-rendered when that changes, rather
  * than shipping a set of alternatives for the host to choose between. Resizing already
@@ -36,11 +39,28 @@ import kotlin.math.roundToInt
  */
 object WidgetRenderer {
 
-    /** Beyond this a glyph is bigger than any sane widget; the cap bounds the update size. */
-    private const val MAX_ICON_PX = 256
+    /**
+     * How much detail to draw beyond what will be shown.
+     *
+     * Both bitmaps are drawn at twice the size they are expected to appear at and scaled
+     * back down by the host, which is what makes an edge look smooth rather than merely
+     * anti-aliased: the shape is sampled four times per final pixel. It is also insurance,
+     * because the size a widget is drawn for is the size the *host* claims — and hosts
+     * report the range a widget may be resized to rather than the size it is. Guessing low
+     * then costs sharpness instead of producing a visibly upscaled tile.
+     */
+    private const val OVERSAMPLE = 2f
 
-    /** The background is one flat shape, so it survives being scaled up a little. */
-    private const val MAX_BACKGROUND_PX = 192
+    /**
+     * Ceilings on that, in pixels.
+     *
+     * Only a widget stretched across most of a screen reaches them, and by then it is
+     * already drawing from more pixels than most phones have across. They exist so a single
+     * update cannot grow without bound: the host allows an app's widgets a bitmap budget
+     * proportional to the display, and a tile is not what should spend it.
+     */
+    private const val MAX_ICON_PX = 512
+    private const val MAX_BACKGROUND_PX = 1024
 
     /** What to assume when the host has not told us how big the widget is yet. */
     private const val FALLBACK_SIZE_DP = 60f
@@ -149,17 +169,35 @@ object WidgetRenderer {
         )
     }
 
+    /**
+     * The glyph.
+     *
+     * From API 31 the vector itself is sent and the host is told how big to draw it, so it
+     * is rasterised at exactly the size it appears at, by the process drawing it — which is
+     * as sharp as a glyph can be, at any size, for no bitmap at all. Before that there is no
+     * way to size a view through a `RemoteViews`, so the glyph is rasterised here instead
+     * and its size carried by the bitmap's density.
+     */
     private fun RemoteViews.drawIcon(
         context: Context,
         @DrawableRes iconRes: Int?,
         layout: WidgetLayout,
         tint: Int,
     ) {
-        val bitmap = if (iconRes != null && layout.showIcon) {
-            iconBitmap(context, iconRes, layout.iconDp, tint)
-        } else {
-            null
+        if (iconRes == null || !layout.showIcon) {
+            setViewVisibility(R.id.widget_icon, View.GONE)
+            return
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            setViewVisibility(R.id.widget_icon, View.VISIBLE)
+            setImageViewResource(R.id.widget_icon, iconRes)
+            setInt(R.id.widget_icon, "setColorFilter", tint)
+            val side = layout.iconDp.toFloat()
+            setViewLayoutWidth(R.id.widget_icon, side, TypedValue.COMPLEX_UNIT_DIP)
+            setViewLayoutHeight(R.id.widget_icon, side, TypedValue.COMPLEX_UNIT_DIP)
+            return
+        }
+        val bitmap = iconBitmap(context, iconRes, layout.iconDp, tint)
         if (bitmap == null) {
             setViewVisibility(R.id.widget_icon, View.GONE)
             return
@@ -204,8 +242,7 @@ object WidgetRenderer {
         color: Int,
         cornerPercent: Int,
     ): Bitmap {
-        val density = context.resources.displayMetrics.density
-        val side = min((sideDp * density).roundToInt(), MAX_BACKGROUND_PX).coerceAtLeast(1)
+        val side = renderedPx(context, sideDp, MAX_BACKGROUND_PX)
 
         val bitmap = Bitmap.createBitmap(side, side, Bitmap.Config.ARGB_8888)
         val radius = WidgetBackgrounds.radiusFor(side.toFloat(), cornerPercent)
@@ -226,22 +263,43 @@ object WidgetRenderer {
         tint: Int,
     ): Bitmap? {
         val drawable = ContextCompat.getDrawable(context, iconRes)?.mutate() ?: return null
-        val density = context.resources.displayMetrics.density
-        val requested = (sizeDp * density).roundToInt().coerceAtLeast(1)
-        val size = min(requested, MAX_ICON_PX)
+        val size = renderedPx(context, sizeDp.toFloat(), MAX_ICON_PX)
 
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         drawable.setTint(tint)
+        // A vector has no resolution of its own: given these bounds it rasterises to fit
+        // them exactly, however many pixels that is.
         drawable.setBounds(0, 0, size, size)
         drawable.draw(Canvas(bitmap))
-        // The image view sizes itself from the bitmap's own density, so a glyph that hit
-        // the cap above is declared as a lower-density one and drawn at the size asked for.
+        // The image view sizes itself from the bitmap's own density, so declaring the
+        // oversampled glyph as a higher-density one is what makes it *shrink* back to the
+        // size the layout asked for instead of arriving twice as big.
         bitmap.density = (size * DENSITY_BASE / sizeDp.coerceAtLeast(1)).roundToInt()
         return bitmap
     }
 
     /** Pixels per density-independent pixel at the baseline density. */
     private const val DENSITY_BASE = 160f
+
+    /**
+     * How many pixels to draw something [sizeDp] across into.
+     *
+     * The device's own density decides the baseline — a tile is drawn for the screen it
+     * will be looked at on — and [OVERSAMPLE] buys the smoothness on top of it. A phone
+     * the platform considers low on memory gets the baseline and no more: on a device with
+     * that little to spare, several megabytes of tile is not a trade worth making for an
+     * edge nobody complained about.
+     */
+    private fun renderedPx(context: Context, sizeDp: Float, maxPx: Int): Int {
+        val metrics = context.resources.displayMetrics
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+        val oversample = if (activityManager?.isLowRamDevice == true) 1f else OVERSAMPLE
+        // Nothing on a home screen is wider than the screen, and the bitmap budget the host
+        // allows an app is proportional to the display, so the display is the other ceiling
+        // — and the one that makes this scale with the phone rather than against it.
+        val cap = min(maxPx, min(metrics.widthPixels, metrics.heightPixels)).coerceAtLeast(1)
+        return (sizeDp * metrics.density * oversample).roundToInt().coerceIn(1, cap)
+    }
 
     /** Density-independent pixels to pixels, for the calls that take only pixels. */
     private fun Int.dp(context: Context): Int =
