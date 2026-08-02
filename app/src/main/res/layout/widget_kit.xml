@@ -14,15 +14,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- The rounded, tinted background, drawn as a bitmap so its radius and opacity can
-         both be configured. Hidden outright when the tile is fully transparent. -->
+    <!-- The tile: a square bitmap, so its colour, opacity and corner radius can all be
+         configured. `fitCenter` keeps it square and centred whatever shape the launcher
+         made the widget, which is what stops the corners deforming with the cell. Hidden
+         outright when the tile is fully transparent. -->
     <ImageView
         android:id="@+id/widget_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:contentDescription="@null"
         android:importantForAccessibility="no"
-        android:scaleType="fitXY" />
+        android:scaleType="fitCenter" />
 
     <LinearLayout
         android:id="@+id/widget_content"

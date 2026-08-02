@@ -374,11 +374,17 @@ One widget, one cell, and nothing about it fixed. Long-press the home screen →
   or whatever you type.
 - **What it looks like** — background and ink from an eight-colour palette, ink on
   automatic if you would rather it work out its own contrast, opacity from opaque to
-  invisible, corner rounding from a square tile to a circle, and text size. Rounding runs
-  0–100%, and 100% is a circle rather than a rounded rectangle: the radius that rounds a
-  square into a circle only rounds the ends of an oblong into a lozenge, so at the top of
-  the slider the disc is inscribed in the cell and centred instead. Launcher cells are
-  rarely square.
+  invisible, corner rounding from 0 to 100%, and text size.
+
+The tile is always square and centred in its cell, at every rounding: square at 0%, a
+rounded square in between, a circle at 100%. Launcher cells are not square — usually a
+little taller than wide, to leave room for a label under an icon — so a tile stretched to
+fill one would be a different shape on every phone, with corners rounding more across than
+down and "fully round" coming out as a lozenge. A square is the same square everywhere, and
+it is the shape everything else on a home screen already is. It is drawn as a square bitmap
+scaled with its aspect ratio kept, which is what makes the shape independent of the size the
+host reports — and hosts report the range a widget may be *resized* to, which on some
+launchers is nothing like the size it actually is.
 
 It is placed as 1×1 and resizes freely in both directions from a single cell up. The layout
 is not a set of breakpoints: every element is a share of the shorter side, so a big widget
