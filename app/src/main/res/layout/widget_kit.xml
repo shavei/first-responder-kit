@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One layout for every widget, at every size.
+
+  Nothing here is styled: the renderer sets every colour, size, padding and visibility at
+  update time from the user's configuration, because a widget is drawn in the launcher's
+  process and a theme attribute means nothing there. What the layout does provide is the
+  stack — glyph, value, caption, centred over a background — and the two accessibility
+  decisions: the children are not announced individually, and the root carries a
+  description of what tapping it does.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- The rounded, tinted background, drawn as a bitmap so its radius and opacity can
+         both be configured. Hidden outright when the tile is fully transparent. -->
+    <ImageView
+        android:id="@+id/widget_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY" />
+
+    <LinearLayout
+        android:id="@+id/widget_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:importantForAccessibility="no"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/widget_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/widget_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:maxLines="2" />
+    </LinearLayout>
+</FrameLayout>

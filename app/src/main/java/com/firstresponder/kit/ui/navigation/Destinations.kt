@@ -19,9 +19,27 @@ object Destinations {
     /** Navigation argument carrying [PatientType.storageName]. */
     const val ARG_PATIENT_TYPE = MetronomeViewModel.ARG_PATIENT_TYPE
 
-    const val METRONOME_ROUTE = "metronome/{$ARG_PATIENT_TYPE}"
+    /** Optional rate to open on; 0 means the one saved in Settings. */
+    const val ARG_BPM = MetronomeViewModel.ARG_BPM
 
-    fun metronome(patientType: PatientType): String = "metronome/${patientType.storageName}"
+    /** Whether the metronome should already be beating when the screen appears. */
+    const val ARG_AUTO_START = MetronomeViewModel.ARG_AUTO_START
+
+    const val METRONOME_ROUTE =
+        "metronome/{$ARG_PATIENT_TYPE}?$ARG_BPM={$ARG_BPM}&$ARG_AUTO_START={$ARG_AUTO_START}"
+
+    /**
+     * The metronome for [patientType].
+     *
+     * The two optional arguments exist for the home-screen widget, which can be set up to
+     * open a particular rate and to have compressions already running by the time the phone
+     * is out of the pocket. Navigation inside the app passes neither.
+     */
+    fun metronome(
+        patientType: PatientType,
+        bpm: Int = 0,
+        autoStart: Boolean = false,
+    ): String = "metronome/${patientType.storageName}?$ARG_BPM=$bpm&$ARG_AUTO_START=$autoStart"
 }
 
 /**

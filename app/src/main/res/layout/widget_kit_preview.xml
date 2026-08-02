@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What the widget picker shows before one has been placed.
+
+  A still of the default configuration, drawn with fixed values because the picker renders
+  it without ever calling the provider. The widget itself is drawn by WidgetRenderer.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_preview_background"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="6dp">
+
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_widget_pulse" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:text="@string/widget_label_cpr"
+        android:textColor="#FFECEFEF"
+        android:textSize="11sp" />
+</LinearLayout>

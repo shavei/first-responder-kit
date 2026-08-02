@@ -106,6 +106,69 @@
     <string name="language_english" translatable="false">English</string>
     <string name="language_hebrew" translatable="false">עברית</string>
 
+    <!-- Home-screen widget -->
+    <string name="widget_description">A one-cell tile you set up yourself: what it opens, what it shows, and what it looks like. Resize it to any shape.</string>
+    <!-- Screen-reader description: the action, then the patient it is set up for. -->
+    <string name="widget_description_patient">%1$s · %2$s</string>
+    <string name="widget_label_kit">Kit</string>
+    <string name="widget_label_cpr">CPR</string>
+
+    <string name="widget_config_title">Widget</string>
+    <string name="widget_config_preview">Preview</string>
+    <string name="widget_config_preview_size">Try it at</string>
+    <!-- Widget sizes, in cells. Written the same way in every language. -->
+    <string name="widget_preview_1x1" translatable="false">1×1</string>
+    <string name="widget_preview_2x1" translatable="false">2×1</string>
+    <string name="widget_preview_2x2" translatable="false">2×2</string>
+
+    <string name="widget_config_action">What it does</string>
+    <string name="widget_action_open_app">Open the kit</string>
+    <string name="widget_action_open_metronome">Open the metronome</string>
+    <string name="widget_action_start_metronome">Start compressions</string>
+    <string name="widget_action_open_oxygen">Open oxygen</string>
+    <string name="widget_action_open_settings">Open settings</string>
+    <string name="widget_config_patient">Patient</string>
+    <string name="widget_config_rate">Rate</string>
+    <string name="widget_config_rate_follow">Follow the rate in Settings</string>
+
+    <string name="widget_config_display">What it shows</string>
+    <string name="widget_config_icon">Icon</string>
+    <string name="widget_icon_auto">Auto</string>
+    <string name="widget_icon_heart">Heart</string>
+    <string name="widget_icon_pulse">Trace</string>
+    <string name="widget_icon_play">Play</string>
+    <string name="widget_icon_oxygen">Air</string>
+    <string name="widget_icon_settings">Sliders</string>
+    <string name="widget_icon_none">None</string>
+    <string name="widget_config_value">Value</string>
+    <string name="widget_value_none">None</string>
+    <string name="widget_value_rate">Rate</string>
+    <string name="widget_value_patient">Patient</string>
+    <string name="widget_value_ratio">Ratio</string>
+    <string name="widget_config_show_label">Show a caption</string>
+    <string name="widget_config_label">Caption</string>
+    <string name="widget_config_label_summary">Leave it empty to use the name of the action</string>
+
+    <string name="widget_config_appearance">How it looks</string>
+    <string name="widget_config_background">Background</string>
+    <string name="widget_config_foreground">Icon and text</string>
+    <string name="widget_color_auto">Auto</string>
+    <string name="widget_color_red">Red</string>
+    <string name="widget_color_green">Green</string>
+    <string name="widget_color_blue">Blue</string>
+    <string name="widget_color_amber">Amber</string>
+    <string name="widget_color_dark">Dark</string>
+    <string name="widget_color_light">Light</string>
+    <string name="widget_color_black">Black</string>
+    <string name="widget_color_white">White</string>
+    <string name="widget_config_opacity">Opacity</string>
+    <string name="widget_config_corners">Corner rounding</string>
+    <string name="widget_config_text_size">Text size</string>
+
+    <string name="widget_config_add">Add the widget</string>
+    <string name="widget_config_save">Save</string>
+    <string name="widget_config_reset">Start over</string>
+
     <!-- Disclaimer -->
     <string name="disclaimer">Personal training aid. Not a medical device and not a substitute for clinical judgement or training.</string>
 </resources>
