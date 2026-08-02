@@ -94,6 +94,9 @@ class MetronomeEngine(
     @Volatile
     private var schedule: BeatSchedule? = null
 
+    /** Whoever is currently driving the engine; see [stopIfHeldBy]. */
+    private var owner: Any? = null
+
     /**
      * The first beat the timing thread has not dispatched yet — the earliest one a tempo
      * change is allowed to move.
@@ -129,11 +132,25 @@ class MetronomeEngine(
      */
     fun prepare() = clickTrack.prepare()
 
-    /** Starts beating. No-op if already running. */
+    /**
+     * Starts beating.
+     *
+     * A start while a session is already running is treated as a reconfiguration of it, not
+     * as a no-op. The engine is a process-wide singleton and its driver is not: navigating to
+     * the metronome while it is already open — a second tap on a widget — builds a new screen
+     * on top of a beat that is still going, and that screen starts the engine with its own
+     * settings. Merely recording them would leave the *configuration* on the new rate and the
+     * *schedule* on the old one, so the screen would read 120 while the compressions came at
+     * 100, and the update that would normally put it right is skipped precisely because the
+     * configuration already agrees.
+     */
     @Synchronized
     fun start(config: MetronomeConfig) {
+        if (running) {
+            updateConfig(config)
+            return
+        }
         this.config = config
-        if (running) return
 
         running = true
         _isRunning.value = true
@@ -166,6 +183,42 @@ class MetronomeEngine(
             isDaemon = true
             start()
         }
+    }
+
+    /**
+     * Takes over the engine, superseding whoever held it before.
+     *
+     * See [stopIfHeldBy] for what the claim is for. Claiming does not disturb a running
+     * session — the new holder inherits it.
+     */
+    @Synchronized
+    fun claim(owner: Any) {
+        this.owner = owner
+    }
+
+    /**
+     * Stops the beat, unless [owner] has already been superseded.
+     *
+     * The engine outlives the screens that drive it, and two of them overlap whenever the
+     * metronome is opened while it is already open: navigating there tears the old screen
+     * down *after* the new one is built, and the old one's teardown — its lifecycle going
+     * quiet, its view model being cleared — would otherwise stop the session the new screen
+     * had just started. On a widget whose whole job is "one tap and compressions are
+     * running", that is a tap that silently does nothing.
+     *
+     * So the last screen to [claim] the engine is the only one whose teardown can stop it.
+     */
+    @Synchronized
+    fun stopIfHeldBy(owner: Any) {
+        if (this.owner === owner) stop()
+    }
+
+    /** Frees the audio resources, unless [owner] has already been superseded. */
+    @Synchronized
+    fun releaseIfHeldBy(owner: Any) {
+        if (this.owner !== owner) return
+        this.owner = null
+        release()
     }
 
     /** Stops beating. No-op if already stopped. */
@@ -385,15 +438,25 @@ private class BeatOutput(
 
     private fun loop() {
         Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+        // The last beat this output actually played. Beats only ever move forwards, so this
+        // is what makes a repeat impossible: a `fire` landing in the window between the flag
+        // being cleared and the beat being read can otherwise leave the flag set behind a
+        // beat that has just been picked up, and the loop would come straight back round and
+        // play it a second time — two cues in quick succession, which is the one thing this
+        // output must never produce. Dropping the repeat costs nothing: the beat has already
+        // gone out, on time.
+        var lastPlayed = Long.MIN_VALUE
         while (running) {
             if (pending.compareAndSet(true, false)) {
                 // Read both before waiting: the next beat may be handed over while this one
                 // is still on its way, and it must not be able to move this one.
                 val index = beatIndex
                 val fireAtNanos = dueAtNanos - leadNanos
+                if (index <= lastPlayed) continue
                 if (!parkUntil(fireAtNanos)) continue
                 val now = System.nanoTime()
                 if (now - fireAtNanos <= STALE_BEAT_NANOS) {
+                    lastPlayed = index
                     play(index)
                     monitor.record(index, fireAtNanos, now)
                 } else {
