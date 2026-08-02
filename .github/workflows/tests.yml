@@ -1,6 +1,6 @@
 name: Tests
 
-# Runs the unit tests on every pull request, and on anything that lands on main.
+# Runs the unit tests on every pull request.
 #
 # Nothing here builds, signs or publishes an APK — that is entirely the release
 # workflow's job and it still happens only when a version tag is pushed. This
@@ -8,15 +8,24 @@ name: Tests
 # request, rather than after a tag has been cut and published under a version
 # number that then has to be withdrawn.
 #
+# Once, not twice. A `pull_request` run checks out `refs/pull/N/merge` — main
+# with the pull request already merged into it — so it tests the exact tree that
+# will land, not the branch in isolation. Re-running on push to main would
+# therefore re-test a commit whose content passed minutes earlier, and the
+# release workflow does not run them a third time for the same reason.
+#
+# The one case a merge-time run would add: two pull requests that each pass
+# alone and fail together, where the second was merged without being refreshed
+# against the first. The remedy for that is GitHub's "Require branches to be up
+# to date before merging" branch protection, which forces the second to be
+# rebuilt on the first — not a duplicate run on every merge.
+#
 # The setup steps deliberately mirror `release.yml` step for step, including the
 # Gradle cache key, so that a green run here means the same thing on the same
 # toolchain as the run that will eventually build the APK.
 
 on:
   pull_request:
-    branches:
-      - main
-  push:
     branches:
       - main
   workflow_dispatch:
