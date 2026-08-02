@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sliders rather than a cog: legible at the size a 1x1 tile leaves for a glyph. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFFFF">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M3,6h9M18,6h3M3,12h3M12,12h9M3,18h9M18,18h3"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.2" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M15,6m-2.6,0a2.6,2.6 0 1,0 5.2,0a2.6,2.6 0 1,0 -5.2,0z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M9,12m-2.6,0a2.6,2.6 0 1,0 5.2,0a2.6,2.6 0 1,0 -5.2,0z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M15,18m-2.6,0a2.6,2.6 0 1,0 5.2,0a2.6,2.6 0 1,0 -5.2,0z" />
+</vector>

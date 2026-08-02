@@ -111,6 +111,64 @@
     <string name="settings_language">שפה</string>
     <string name="language_system">מערכת</string>
 
+    <!-- Home-screen widget -->
+    <string name="widget_description">אריח בגודל תא אחד שאתם מגדירים בעצמכם: מה הוא פותח, מה הוא מציג ואיך הוא נראה. אפשר למתוח אותו לכל צורה.</string>
+    <string name="widget_description_patient">%1$s · %2$s</string>
+    <string name="widget_label_kit">ערכה</string>
+    <string name="widget_label_cpr">החייאה</string>
+
+    <string name="widget_config_title">ווידג\'ט</string>
+    <string name="widget_config_preview">תצוגה מקדימה</string>
+    <string name="widget_config_preview_size">בגודל</string>
+
+    <string name="widget_config_action">מה הוא עושה</string>
+    <string name="widget_action_open_app">פתיחת הערכה</string>
+    <string name="widget_action_open_metronome">פתיחת המטרונום</string>
+    <string name="widget_action_start_metronome">התחלת עיסויים</string>
+    <string name="widget_action_open_oxygen">פתיחת חמצן</string>
+    <string name="widget_action_open_settings">פתיחת ההגדרות</string>
+    <string name="widget_config_patient">מטופל</string>
+    <string name="widget_config_rate">קצב</string>
+    <string name="widget_config_rate_follow">לפי הקצב שבהגדרות</string>
+
+    <string name="widget_config_display">מה הוא מציג</string>
+    <string name="widget_config_icon">סמל</string>
+    <string name="widget_icon_auto">אוטומטי</string>
+    <string name="widget_icon_heart">לב</string>
+    <string name="widget_icon_pulse">גרף</string>
+    <string name="widget_icon_play">הפעלה</string>
+    <string name="widget_icon_oxygen">אוויר</string>
+    <string name="widget_icon_settings">מחוונים</string>
+    <string name="widget_icon_none">ללא</string>
+    <string name="widget_config_value">ערך</string>
+    <string name="widget_value_none">ללא</string>
+    <string name="widget_value_rate">קצב</string>
+    <string name="widget_value_patient">מטופל</string>
+    <string name="widget_value_ratio">יחס</string>
+    <string name="widget_config_show_label">הצגת כיתוב</string>
+    <string name="widget_config_label">כיתוב</string>
+    <string name="widget_config_label_summary">השאירו ריק כדי להשתמש בשם הפעולה</string>
+
+    <string name="widget_config_appearance">איך הוא נראה</string>
+    <string name="widget_config_background">רקע</string>
+    <string name="widget_config_foreground">סמל וטקסט</string>
+    <string name="widget_color_auto">אוטומטי</string>
+    <string name="widget_color_red">אדום</string>
+    <string name="widget_color_green">ירוק</string>
+    <string name="widget_color_blue">כחול</string>
+    <string name="widget_color_amber">ענבר</string>
+    <string name="widget_color_dark">כהה</string>
+    <string name="widget_color_light">בהיר</string>
+    <string name="widget_color_black">שחור</string>
+    <string name="widget_color_white">לבן</string>
+    <string name="widget_config_opacity">אטימות</string>
+    <string name="widget_config_corners">עיגול פינות</string>
+    <string name="widget_config_text_size">גודל טקסט</string>
+
+    <string name="widget_config_add">הוספת הווידג\'ט</string>
+    <string name="widget_config_save">שמירה</string>
+    <string name="widget_config_reset">התחלה מחדש</string>
+
     <!-- Disclaimer -->
     <string name="disclaimer">עזר אימון אישי. אינו מכשיר רפואי ואינו תחליף לשיקול דעת קליני או להכשרה.</string>
 </resources>

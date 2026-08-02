@@ -29,6 +29,37 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+          Where a home-screen widget is set up, both when it is placed and when it is edited
+          afterwards. Exported because the launcher is what starts it; it carries no data of
+          its own beyond the widget id it is handed.
+        -->
+        <activity
+            android:name=".widget.WidgetConfigActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|density|fontScale"
+            android:label="@string/widget_config_title"
+            android:theme="@style/Theme.FirstResponderKit">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          The widget itself. Not exported: the only broadcasts it needs are the ones the
+          system sends it by name.
+        -->
+        <receiver
+            android:name=".widget.KitWidget"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/kit_widget_info" />
+        </receiver>
     </application>
 
 </manifest>

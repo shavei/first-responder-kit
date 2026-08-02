@@ -12,6 +12,7 @@ import com.firstresponder.kit.audio.MetronomeConfig
 import com.firstresponder.kit.audio.MetronomeEngine
 import com.firstresponder.kit.domain.PatientType
 import com.firstresponder.kit.settings.SettingsRepository
+import com.firstresponder.kit.settings.UserSettings
 import com.firstresponder.kit.util.Bpm
 import com.firstresponder.kit.util.VibrationStrength
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -60,10 +62,26 @@ class MetronomeViewModel(
         PatientType.fromStorageName(savedStateHandle[ARG_PATIENT_TYPE])
 
     /**
+     * Whether to be beating already when the screen appears.
+     *
+     * Set only by a home-screen widget configured to start compressions: the point of that
+     * widget is that one tap on a locked phone is the whole interaction, so waiting for a
+     * second tap on Start would defeat it.
+     */
+    private val autoStart: Boolean = savedStateHandle[ARG_AUTO_START] ?: false
+
+    /**
      * BPM chosen on this screen. Null means "use the saved default" — adjusting the rate
      * mid-session is intentionally not persisted; the default lives in Settings.
+     *
+     * A widget may open the screen on a rate of its own, which is where a non-null starting
+     * value comes from.
      */
-    private val sessionBpm = MutableStateFlow<Int?>(null)
+    private val sessionBpm = MutableStateFlow(
+        savedStateHandle.get<Int>(ARG_BPM)
+            ?.takeIf { it > 0 }
+            ?.let { patientType.clampRate(Bpm.clamp(it)) },
+    )
 
     val uiState: StateFlow<MetronomeUiState> = combine(
         settingsRepository.settings,
@@ -95,7 +113,17 @@ class MetronomeViewModel(
     init {
         // Warm the audio track up while the user is still reading the screen, so the very
         // first beat after Start is as prompt as every later one.
-        viewModelScope.launch(Dispatchers.Default) { engine.prepare() }
+        viewModelScope.launch(Dispatchers.Default) {
+            engine.prepare()
+            if (autoStart) {
+                // Built from the settings directly rather than from the UI state, which
+                // starts on a placeholder: a widget that says 110 has to beat 110 from the
+                // first beat, not from whenever the store gets round to answering. The
+                // config the collector below pushes is identical, so nothing changes on
+                // arrival either.
+                engine.start(configFor(settingsRepository.settings.first()))
+            }
+        }
 
         // Any settings or BPM change is pushed straight to the running engine.
         viewModelScope.launch {
@@ -125,6 +153,14 @@ class MetronomeViewModel(
         engine.release()
     }
 
+    /** The engine settings this screen implies, for a caller that only has [settings]. */
+    private fun configFor(settings: UserSettings) = MetronomeConfig(
+        bpm = patientType.clampRate(Bpm.clamp(sessionBpm.value ?: settings.defaultBpm)),
+        soundEnabled = settings.soundEnabled,
+        vibrationEnabled = settings.vibrationEnabled,
+        vibrationAmplitude = settings.vibrationAmplitude,
+    )
+
     private fun MetronomeUiState.toConfig() = MetronomeConfig(
         bpm = bpm,
         soundEnabled = soundEnabled,
@@ -138,6 +174,12 @@ class MetronomeViewModel(
          * so the view model's contract does not depend on the navigation graph.
          */
         const val ARG_PATIENT_TYPE = "patientType"
+
+        /** Rate to open on, or 0 to follow the default saved in Settings. */
+        const val ARG_BPM = "bpm"
+
+        /** Whether the metronome starts beating without waiting to be told. */
+        const val ARG_AUTO_START = "autostart"
 
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The widget's contract with the launcher.
+
+  It asks for a single cell and allows itself to be resized in both directions, from that
+  one cell up to most of a screen: 40 dp is the smallest cell any launcher lays out, and
+  `minResizeWidth`/`minResizeHeight` repeat it so the user can drag a larger widget all the
+  way back down. WidgetRenderer redraws at whatever size that leaves.
+
+  `updatePeriodMillis` is zero on purpose — see KitWidget for why nothing here updates on a
+  timer. `configure` sends every newly placed widget through the configuration screen, and
+  `reconfigurable` puts it back within reach afterwards, so a widget can be changed rather
+  than deleted and placed again.
+
+  The attributes marked below arrived in API 31; older launchers ignore them and fall back
+  to the dp sizes and the preview image above them.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:configure="com.firstresponder.kit.widget.WidgetConfigActivity"
+    android:description="@string/widget_description"
+    android:initialLayout="@layout/widget_kit"
+    android:minHeight="40dp"
+    android:minResizeHeight="40dp"
+    android:minResizeWidth="40dp"
+    android:minWidth="40dp"
+    android:previewImage="@mipmap/ic_launcher"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen"
+    tools:targetApi="s"
+    android:maxResizeHeight="512dp"
+    android:maxResizeWidth="512dp"
+    android:previewLayout="@layout/widget_kit_preview"
+    android:targetCellHeight="1"
+    android:targetCellWidth="1"
+    android:widgetFeatures="reconfigurable" />

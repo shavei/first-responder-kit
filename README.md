@@ -138,6 +138,9 @@ have.
   reservoir bag, at 10–15 L/min), a calculator for how long a cylinder has left —
   pressure × cylinder volume ÷ flow, over the 20 L and 2.4 L cylinders — and the handling
   rules that go with a cylinder of oxygen.
+- **Home-screen widget** — a 1×1 tile, resizable in both directions, where everything is
+  chosen by you: what it opens (including a metronome that is already beating), what it
+  shows, and what it looks like. See [The home-screen widget](#the-home-screen-widget).
 - **Language** — English or Hebrew, switchable in Settings and applied on the spot, with
   the layout mirrored for Hebrew. Following the device's own language is the default.
 - **Settings** — sound, vibration, vibration strength, keep-screen-awake, default BPM,
@@ -256,11 +259,18 @@ app/src/main/java/com/firstresponder/kit/
 ├─ settings/                 UserSettings, repository interface, DataStore implementation
 ├─ util/                     BPM math, oxygen duration, haptics, keep-screen-on effect
 ├─ viewmodel/                MetronomeViewModel, SettingsViewModel
+├─ widget/
+│  ├─ WidgetConfig.kt        what one home-screen widget is: action, display, colours
+│  ├─ WidgetLayout.kt        fits the glyph, value and caption into the space there is
+│  ├─ WidgetRenderer.kt      builds the RemoteViews the launcher is sent
+│  ├─ KitWidget.kt           the AppWidgetProvider
+│  ├─ WidgetStore.kt         per-widget settings, kept where a broadcast can read them
+│  └─ WidgetConfigActivity.kt   the configuration screen's host
 └─ ui/
    ├─ AppLocale.kt           applies the chosen language to the whole tree
    ├─ components/            big buttons, pulse circle, steppers, setting rows
    ├─ navigation/            routes, tool registry, NavHost
-   ├─ screens/               Home, Metronome, Oxygen, Settings
+   ├─ screens/               Home, Metronome, Oxygen, Settings, widget configuration
    └─ theme/                 colours, typography, theme
 
 app/src/main/res/
@@ -348,6 +358,54 @@ click from anywhere in the app rather than moving a media volume nothing here us
 
 The metronome stops when the screen leaves the foreground. There is no foreground service,
 so it deliberately does not beat in the background.
+
+## The home-screen widget
+
+One widget, one cell, and nothing about it fixed. Long-press the home screen → **Widgets** →
+**First Responder Kit**, and the configuration screen decides:
+
+- **What tapping it does** — open the kit, open the metronome, *start compressions* (the
+  metronome is already beating by the time you are looking at it), open oxygen, or open
+  settings. The metronome actions carry their own patient type and their own rate, which
+  can follow the default in Settings or be pinned to anything that patient's protocol
+  allows.
+- **What it shows** — one of six glyphs or none, a value (the rate, the patient emoji, or
+  the compressions-to-breaths ratio), and a caption that is either the name of the action
+  or whatever you type.
+- **What it looks like** — background and ink from an eight-colour palette, ink on
+  automatic if you would rather it work out its own contrast, opacity from opaque to
+  invisible, corner rounding from a square tile to a circle, and text size.
+
+It is placed as 1×1 and resizes freely in both directions from a single cell up. The layout
+is not a set of breakpoints: every element is a share of the shorter side, so a big widget
+is the same widget drawn bigger, and anything that would end up too small to read is
+dropped — caption first, then value — which is what lets a single cell be a glyph and
+nothing else without you having to turn the caption off. `WidgetLayoutsTest` covers that
+end of it.
+
+Several widgets can sit side by side with entirely different settings; each is stored
+against its own widget id and deleted with it. An existing widget can be reconfigured
+later — long-press it and pick the reconfigure affordance your launcher offers — and
+backing out of the screen leaves it exactly as it was.
+
+The preview at the top of the configuration screen is not a mock-up. It is the same
+`RemoteViews` the launcher is sent, inflated in place at 1×1, 2×1 or 2×2, so what you are
+looking at is what will land on the home screen.
+
+Three things are worth knowing about the implementation, all in `widget/`:
+
+- **No background work.** `updatePeriodMillis` is zero and there is no service. Nothing a
+  widget shows changes on its own, so it is redrawn when it is placed, resized or
+  reconfigured, and when the app is left — which is the only moment a setting it mirrors
+  can have changed underneath it.
+- **A widget is drawn by the launcher**, in the launcher's process and the *device's*
+  locale. This app picks its language itself, so the provider renders through a context
+  localised to the language the app was last in, mirrored into the widget's own store
+  alongside the default rate.
+- **Colours, sizes and rounding are baked into two small bitmaps** — the background and the
+  tinted glyph — because the set of `RemoteViews` calls that behaves identically from API
+  26 to today is narrow, and "configurable" has to mean it works everywhere rather than
+  only on the newest phones.
 
 ## Startup
 
