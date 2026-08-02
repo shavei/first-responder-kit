@@ -111,6 +111,13 @@ class MetronomeViewModel(
     val beats: SharedFlow<Long> = engine.beats
 
     init {
+        // Claim the shared engine before anything is started on it. Opening the metronome
+        // while it is already open — a second tap on a widget — builds this view model
+        // before the previous screen's is cleared, and both hold the same engine; the claim
+        // is what stops the outgoing one's teardown from silencing the session this one is
+        // about to start. See [MetronomeEngine.stopIfHeldBy].
+        engine.claim(this)
+
         // Warm the audio track up while the user is still reading the screen, so the very
         // first beat after Start is as prompt as every later one.
         viewModelScope.launch(Dispatchers.Default) {
@@ -139,8 +146,14 @@ class MetronomeViewModel(
         }
     }
 
-    /** Stops the beat, e.g. when the screen is no longer in the foreground. */
-    fun stop() = engine.stop()
+    /**
+     * Stops the beat, e.g. when the screen is no longer in the foreground.
+     *
+     * Guarded by the claim: this screen going quiet is only a reason to stop the metronome
+     * while this screen is still the one driving it. A screen being torn down to make way
+     * for another must not stop that other one's beat.
+     */
+    fun stop() = engine.stopIfHeldBy(this)
 
     /** Steps the rate by [delta] BPM, clamped to the range this patient's protocol allows. */
     fun adjustBpm(delta: Int) {
@@ -149,8 +162,10 @@ class MetronomeViewModel(
 
     override fun onCleared() {
         // Leaving the screen releases the timing thread and the audio track; the engine is
-        // reusable and will re-prepare itself the next time the screen opens.
-        engine.release()
+        // reusable and will re-prepare itself the next time the screen opens. Guarded by the
+        // claim, so a view model cleared *after* its replacement has already taken over —
+        // which is the order navigation tears screens down in — frees nothing.
+        engine.releaseIfHeldBy(this)
     }
 
     /** The engine settings this screen implies, for a caller that only has [settings]. */

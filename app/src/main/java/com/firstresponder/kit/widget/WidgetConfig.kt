@@ -54,11 +54,34 @@ data class WidgetConfig(
      */
     fun sanitized(): WidgetConfig = copy(
         bpm = bpm?.let { patientType.clampRate(Bpm.clamp(it)) },
-        label = labelOrNull()?.take(MAX_LABEL_LENGTH),
+        // Truncated first and trimmed *afterwards*: the cut can land in the middle of a run
+        // of spaces, and a caption that came back from the store with trailing whitespace
+        // would be trimmed on the next pass and saved shorter again. Sanitising has to be
+        // idempotent, because a widget is sanitised every time it is read as well as every
+        // time it is written.
+        label = labelOrNull()
+            ?.takeWholeCharacters(MAX_LABEL_LENGTH)
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() },
         backgroundOpacity = backgroundOpacity.coerceIn(0, 100),
         cornerPercent = cornerPercent.coerceIn(0, 50),
         textScale = textScale.coerceIn(MIN_TEXT_SCALE, MAX_TEXT_SCALE),
     )
+
+    /**
+     * The first [maxLength] characters of this string, never splitting one in half.
+     *
+     * The limit counts UTF-16 units, and anything past the basic multilingual plane — every
+     * emoji, which is exactly what people put on a tile — occupies two of them. A plain
+     * `take` can cut between the halves of one and leave an unpaired surrogate, which is not
+     * text any more: the launcher draws it as a hollow box, and the next save writes it
+     * straight back into the store.
+     */
+    private fun String.takeWholeCharacters(maxLength: Int): String {
+        if (length <= maxLength) return this
+        val cut = if (this[maxLength - 1].isHighSurrogate()) maxLength - 1 else maxLength
+        return substring(0, cut)
+    }
 
     companion object {
         /** Long enough for a sentence, short enough that a corrupt store cannot bloat a tile. */

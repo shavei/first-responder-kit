@@ -78,7 +78,13 @@ class BeatGrid private constructor(
         bpm = Bpm.clamp(bpm),
         anchorBeat = fromBeat,
         anchorFrame = frameOf(fromBeat),
-        previous = this,
+        // A change hinged on this grid's own anchor replaces it outright rather than
+        // stacking on top of it: this segment never got to answer for a beat, so nothing
+        // that has been rendered depends on it. Chaining instead would let a rate held down
+        // on the stepper — every change between two beats hinging on the same one — grow
+        // the chain without bound and add a frame of recursion to every lookup behind the
+        // hinge, which the renderer performs on every block.
+        previous = if (fromBeat == anchorBeat) previous else this,
     )
 
     companion object {

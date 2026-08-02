@@ -34,6 +34,18 @@ object ClickSynth {
     private const val ATTACK_MS = 1
 
     /**
+     * A ~2 ms fade-out, for the same reason as [ATTACK_MS] at the other end.
+     *
+     * The decay alone does not reach silence inside [DURATION_MS]: at the end of the click it
+     * is still around a quarter of full scale, so simply stopping there leaves a step of that
+     * size in the stream. A step is broadband — it is exactly what the *attack* ramp exists to
+     * avoid — and here it lands on every single beat, adding a rasp to a click that is
+     * supposed to be a clean tick. Ramping the last couple of milliseconds down to zero costs
+     * nothing audible from the click itself, which is long past its transient by then.
+     */
+    private const val RELEASE_MS = 2
+
+    /**
      * Renders the click.
      *
      * @param sampleRate the stream's sample rate, in Hz.
@@ -41,6 +53,7 @@ object ClickSynth {
     fun generate(sampleRate: Int): ShortArray {
         val clickFrames = sampleRate * DURATION_MS / 1_000
         val attackFrames = (sampleRate * ATTACK_MS / 1_000).coerceAtLeast(1)
+        val releaseFrames = (sampleRate * RELEASE_MS / 1_000).coerceAtLeast(1)
         val samples = ShortArray(clickFrames)
 
         val angularStep = 2.0 * PI * TONE_HZ / sampleRate
@@ -48,7 +61,10 @@ object ClickSynth {
             val seconds = frame.toDouble() / sampleRate
             val decay = exp(-DECAY_PER_SECOND * seconds)
             val attack = min(1.0, frame.toDouble() / attackFrames)
-            val value = sin(angularStep * frame) * decay * attack * PEAK
+            // Reaches exactly zero on the last frame, so the click ends on silence whatever
+            // the decay has left at that point.
+            val release = min(1.0, (clickFrames - 1 - frame).toDouble() / releaseFrames)
+            val value = sin(angularStep * frame) * decay * attack * release * PEAK
             samples[frame] = (value * Short.MAX_VALUE).roundToInt().toShort()
         }
         return samples
