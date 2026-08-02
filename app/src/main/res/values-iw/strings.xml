@@ -163,6 +163,7 @@
     <string name="widget_color_white">לבן</string>
     <string name="widget_config_opacity">אטימות</string>
     <string name="widget_config_corners">עיגול פינות</string>
+    <string name="widget_config_corners_summary">עיגול מלא הוא 100%</string>
     <string name="widget_config_text_size">גודל טקסט</string>
 
     <string name="widget_config_add">הוספת הווידג\'ט</string>
