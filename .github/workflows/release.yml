@@ -93,9 +93,12 @@ jobs:
           } > keystore.properties
           echo "Signing with the configured release key."
 
-      - name: Run the unit tests
-        run: ./gradlew --no-daemon testDebugUnitTest
-
+      # The tests are not run again here. They run on every pull request and on
+      # everything that lands on main (see tests.yml), and a tag is cut from a
+      # commit on main — so by the time a tag exists, its commit has already been
+      # tested on this same toolchain. Running them a second time would only add
+      # minutes to a release and teach everyone to skim past a step that always
+      # passes.
       - name: Build the release APK
         run: |
           ./gradlew --no-daemon assembleRelease \
