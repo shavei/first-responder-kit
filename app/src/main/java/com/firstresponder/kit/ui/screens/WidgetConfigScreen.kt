@@ -66,6 +66,7 @@ import com.firstresponder.kit.ui.components.SingleChoiceRow
 import com.firstresponder.kit.ui.theme.FirstResponderKitTheme
 import com.firstresponder.kit.util.Bpm
 import com.firstresponder.kit.widget.WidgetAction
+import com.firstresponder.kit.widget.WidgetBackgrounds
 import com.firstresponder.kit.widget.WidgetColor
 import com.firstresponder.kit.widget.WidgetConfig
 import com.firstresponder.kit.widget.WidgetIcon
@@ -217,10 +218,17 @@ fun WidgetConfigScreen(
             )
             PercentSlider(
                 title = stringResource(R.string.widget_config_corners),
-                // 50% of the shorter side is a circle; past that there is nothing left to round.
-                value = config.cornerPercent,
-                range = 0..50,
-                onChange = { percent -> onConfigChange(config.copy(cornerPercent = percent)) },
+                summary = stringResource(R.string.widget_config_corners_summary),
+                // Shown as a share of the roundest a tile can be rather than as the radius
+                // itself, which tops out at half the shorter side and would read as though
+                // the slider still had somewhere to go.
+                value = WidgetBackgrounds.toSliderPercent(config.cornerPercent),
+                range = 0..100,
+                onChange = { percent ->
+                    onConfigChange(
+                        config.copy(cornerPercent = WidgetBackgrounds.fromSliderPercent(percent)),
+                    )
+                },
             )
             PercentSlider(
                 title = stringResource(R.string.widget_config_text_size),
@@ -484,8 +492,9 @@ private fun PercentSlider(
     value: Int,
     range: IntRange,
     onChange: (Int) -> Unit,
+    summary: String? = null,
 ) {
-    SettingBlock(title = title) {
+    SettingBlock(title = title, summary = summary) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Slider(
                 value = value.toFloat(),

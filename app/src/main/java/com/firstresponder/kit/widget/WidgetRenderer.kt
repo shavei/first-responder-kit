@@ -189,7 +189,14 @@ object WidgetRenderer {
         setTextViewTextSize(viewId, TypedValue.COMPLEX_UNIT_DIP, sizeDp.toFloat())
     }
 
-    /** A flat rounded rectangle at the widget's aspect ratio, so the corners stay round. */
+    /**
+     * The background, drawn into a bitmap the shape of the whole tile.
+     *
+     * The bitmap always matches the tile's aspect ratio — it is stretched to fill by the
+     * image view, and a bitmap of any other shape would come out distorted. What changes
+     * with the rounding is the shape painted *inside* it, which is how a fully round tile
+     * can be a centred circle rather than a stretched one. See [WidgetBackgrounds].
+     */
     private fun backgroundBitmap(
         context: Context,
         widthDp: Float,
@@ -202,12 +209,12 @@ object WidgetRenderer {
         val width = (widthDp * density * scale).roundToInt().coerceAtLeast(1)
         val height = (heightDp * density * scale).roundToInt().coerceAtLeast(1)
 
+        val shape = WidgetBackgrounds.shapeFor(width.toFloat(), height.toFloat(), cornerPercent)
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val radius = min(width, height) * cornerPercent / 100f
         Canvas(bitmap).drawRoundRect(
-            RectF(0f, 0f, width.toFloat(), height.toFloat()),
-            radius,
-            radius,
+            RectF(shape.left, shape.top, shape.right, shape.bottom),
+            shape.radius,
+            shape.radius,
             Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color },
         )
         return bitmap

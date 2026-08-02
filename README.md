@@ -374,7 +374,11 @@ One widget, one cell, and nothing about it fixed. Long-press the home screen →
   or whatever you type.
 - **What it looks like** — background and ink from an eight-colour palette, ink on
   automatic if you would rather it work out its own contrast, opacity from opaque to
-  invisible, corner rounding from a square tile to a circle, and text size.
+  invisible, corner rounding from a square tile to a circle, and text size. Rounding runs
+  0–100%, and 100% is a circle rather than a rounded rectangle: the radius that rounds a
+  square into a circle only rounds the ends of an oblong into a lozenge, so at the top of
+  the slider the disc is inscribed in the cell and centred instead. Launcher cells are
+  rarely square.
 
 It is placed as 1×1 and resizes freely in both directions from a single cell up. The layout
 is not a set of breakpoints: every element is a share of the shorter side, so a big widget
